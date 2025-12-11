@@ -16,10 +16,18 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-
+#include <iostream>
 #include <peel/Gtk/Gtk.h>
-#include <peel/GLib/MainContext.h>
+#include <peel/GLib/GLib.h>
+#include <peel/Gio/Gio.h>
 
+#include "net_definition.hpp"
+extern "C" {
+#include "monday-night-net-resources.h"
+}
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 using namespace peel;
 
 int
@@ -30,6 +38,14 @@ main ()
   Gtk::Window *window = Gtk::Window::create ();
   window->set_title ("Hello, world!");
   window->present ();
+
+  RefPtr<NetDefinition> my_instance = Object::create<NetDefinition> ();
+  my_instance->say_hello ();
+
+  auto net_resource = RefPtr<Gio::Resource>::adopt_ref(reinterpret_cast<Gio::Resource*>(monday_night_net_resources_get_resource()));
+  auto net_bytes    = net_resource->lookup_data("/net/talinet/MondayNightNet/default-net.json", Gio::Resource::LookupFlags::NONE, nullptr);
+  auto net_json     = json::parse(net_bytes->get_data());
+  std::cout << net_json.dump(2);
 
   // Spin the event loop.
   GLib::MainContext *context = GLib::MainContext::default_ ();
