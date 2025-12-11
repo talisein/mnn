@@ -1,5 +1,16 @@
 gnome = import('gnome')
 
+# Verify json
+jq_prog = find_program('jq', required : false)
+if jq_prog.found()
+    test('default-net json validation',
+        jq_prog,
+        args: ['-e', '.', 'default-net.json'],
+        suite: 'validation',
+        workdir: meson.current_source_dir()
+    )
+endif
+
 res = gnome.compile_resources('monday-night-net-resources',
                               'monday-night-net.gresource.xml',
                               install_header : false,
@@ -16,4 +27,5 @@ gnome.post_install(glib_compile_schemas: true)
 test('validate-schema',
   find_program('glib-compile-schemas'),
   args: ['--strict', '--dry-run', meson.current_source_dir()],
+  suite: 'validation',
 )
