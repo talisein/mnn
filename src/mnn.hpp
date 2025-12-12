@@ -16,16 +16,13 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <print>
-#include "mnn.hpp"
-#include "mnn_application.hpp"
+#pragma once
 
-using namespace peel;
+#include <nlohmann/json.hpp>
 
-int
-main (int argc, char *argv[])
+namespace mnn
 {
-  mnn::init();
-  RefPtr<mnn::Application> app = mnn::Application::create();
-  return app->run (argc, argv);
+    void init();
+
+    [[nodiscard]] nlohmann::json get_default_net();
 }

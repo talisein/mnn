@@ -6,7 +6,13 @@
     },
     "totals": [
         "Los Altos", "Los Altos Hills", "Mountain View", "Palo Alto North",
-        "Stanford", "Sunnyvale", "NASA/Ames", "Guests", "Total", "UHF", "Packet"
+        "Stanford", "Sunnyvale", "NASA/Ames", "Guests", "UHF", "Packet"
+    ],
+    "columns": [
+        { "begin": "A", "end": "F" },
+        { "begin": "G", "end": "L" },
+        { "begin": "M", "end": "S" },
+        { "begin": "T", "end": "Z" }
     ],
     "stations": [
         { "callsign": "KJ6AMM", "name": "Paul", "emergency_manager": true},

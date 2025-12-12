@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <schemalist>
-  <schema id="net.talinet.MondayNightNet.State" path="/net/talinet/MondayNightNet/State/">
+  <schema id="radio.ki6kvz.MondayNightNet.State" path="/radio/ki6kvz/MondayNightNet/State/">
     <key name="width" type="i">
       <default>640</default>
     </key>

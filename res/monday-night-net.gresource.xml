@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
-  <gresource prefix="/net/talinet/MondayNightNet">
+  <gresource prefix="/radio/ki6kvz/MondayNightNet">
     <file>default-net.json</file>
   </gresource>
 </gresources>

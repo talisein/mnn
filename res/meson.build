@@ -11,16 +11,16 @@ if jq_prog.found()
     )
 endif
 
-res = gnome.compile_resources('monday-night-net-resources',
+res = gnome.compile_resources('mnn_resources',
                               'monday-night-net.gresource.xml',
                               install_header : false,
                               export : false,
-                              c_name : 'monday_night_net_resources')
+                              c_name : 'mnn_resources')
 
 # GSettings
 
 schemas_dir = get_option('prefix') / get_option('datadir') / 'glib-2.0' / 'schemas'
-settings_schemas = [ 'net.talinet.MondayNightNet.gschema.xml' ]
+settings_schemas = [ 'radio.ki6kvz.MondayNightNet.gschema.xml' ]
 install_data(settings_schemas, install_dir: schemas_dir)
 gnome.compile_schemas(depend_files: files(settings_schemas))
 gnome.post_install(glib_compile_schemas: true)

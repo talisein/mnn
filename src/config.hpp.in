@@ -1,0 +1,4 @@
+#pragma once
+
+#define MNN_HAS_BACKTRACE @has_backtrace@
+#define MNN_HAS_STACKTRACE @has_stacktrace@

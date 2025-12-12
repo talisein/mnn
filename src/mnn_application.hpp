@@ -16,16 +16,26 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <print>
-#include "mnn.hpp"
-#include "mnn_application.hpp"
+#pragma once
 
-using namespace peel;
+#include <peel/Adw/Adw.h>
+#include <peel/Gio/Gio.h>
+#include <peel/GLib/GLib.h>
+#include <peel/class.h>
 
-int
-main (int argc, char *argv[])
+namespace mnn
 {
-  mnn::init();
-  RefPtr<mnn::Application> app = mnn::Application::create();
-  return app->run (argc, argv);
-}
+    class Application final : public peel::Adw::Application
+    {
+        PEEL_SIMPLE_CLASS(Application, peel::Adw::Application);
+        friend class peel::Gio::Application;
+
+        void init(Class *);
+        void vfunc_activate();
+        void action_quit(peel::Gio::SimpleAction *, peel::GLib::Variant *);
+
+    public:
+        [[nodiscard]] static peel::RefPtr<Application> create();
+    };
+
+} // namespace mnn
