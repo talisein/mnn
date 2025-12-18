@@ -1,0 +1,4 @@
+option('development',
+       type: 'boolean',
+       value: false,
+       description: 'If this is a development build (implies .Devel app-id suffix)')

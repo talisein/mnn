@@ -1,4 +1,28 @@
+/*
+    monday-night-net: An amateur radio net monitoring utility in gtk4
+    Copyright (C) 2025  Andrew Potter
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #pragma once
 
 #define MNN_HAS_BACKTRACE @has_backtrace@
 #define MNN_HAS_STACKTRACE @has_stacktrace@
+#define MNN_HAS_CORE_FOUNDATION @has_core_foundation@
+
+constexpr char LOCALEDIR[] = @locale_dir@;
+constexpr char REPO_ISSUES_LINK[] = "https://github.com/talisein/mnn/issues";
+constexpr char PACKAGE_VERSION[] = "@project_version@";
+constexpr char APP_ID[] = "@app_id@";

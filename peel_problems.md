@@ -14,6 +14,8 @@ o Passing `UniquePtr<GLib::Error>` as a pointer is weird. Why not have those
   functions take a ref.
   - i.e. the signature is currently `Gio::Resource::lookup_data(..., UniquePtr<Glib::Error>* err)`
   - i guess it might be optional allowing nullptr to be passed? I'd rather see a
-    defaulted method.
+    defaulted method, or an optional.
 o Examples have `#include <peel/Gio/SpecificClass.h>` but there is a
   `<peel/Gio/Gio.h>` that has everything. Seems like a better starting point.
+
+```

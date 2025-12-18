@@ -15,7 +15,7 @@
         { "begin": "T", "end": "Z" }
     ],
     "stations": [
-        { "callsign": "KJ6AMM", "name": "Paul", "emergency_manager": true},
+        { "callsign": "KJ6AMM", "name": "Paul", "assistant_emergency_coordinator": true},
         { "callsign": "KO6APA", "name": "Michael"},
         { "callsign": "KO6BAW", "name": "Avinash"},
         { "callsign": "KE6BJQ", "name": "Tim"},
@@ -23,15 +23,15 @@
         { "callsign": "KR6DD", "name": "Andy"},
         { "callsign": "AB1DE", "name": "Jeff"},
         { "callsign": "N9DK", "name": "Dave"},
-        { "callsign": "KZ6DM", "name": "Poul", "emergency_manager": true},
+        { "callsign": "KZ6DM", "name": "Poul", "assistant_emergency_coordinator": true},
         { "callsign": "KE7DO", "name": "Greg"},
-        { "callsign": "KN6DSE", "name": "Kelly", "emergency_manager": true},
+        { "callsign": "KN6DSE", "name": "Kelly", "assistant_emergency_coordinator": true},
         { "callsign": "KN6EAM", "name": "Jonathan"},
         { "callsign": "KM6EEI", "name": "Micky"},
-        { "callsign": "KK6EKN", "name": "Leslie", "emergency_manager": true},
+        { "callsign": "KK6EKN", "name": "Leslie", "assistant_emergency_coordinator": true},
         { "callsign": "KN6EKW", "name": "Robert"},
-        { "callsign": "AE6EO", "name": "Dave", "emergency_manager": true},
-        { "callsign": "K6FSH", "name": "Fish", "emergency_manager": true},
+        { "callsign": "AE6EO", "name": "Dave", "assistant_emergency_coordinator": true},
+        { "callsign": "K6FSH", "name": "Fish", "assistant_emergency_coordinator": true},
         { "callsign": "KO6FXJ", "name": "Isaac"},
 
         { "callsign": "KT2G", "name": "Marc"},
@@ -42,10 +42,10 @@
         { "callsign": "WA1IAM", "name": "Dave"},
         { "callsign": "N6IDV", "name": "Kathy"},
         { "callsign": "KO6IGO", "name": "John"},
-        { "callsign": "N6IHT", "name": "Mike", "emergency_manager": true},
+        { "callsign": "N6IHT", "name": "Mike", "assistant_emergency_coordinator": true},
         { "callsign": "KO6JEN", "name": "Herveline"},
         { "callsign": "N1JOK", "name": "Neil"},
-        { "callsign": "WU6K", "name": "Jim", "emergency_manager": true},
+        { "callsign": "WU6K", "name": "Jim", "assistant_emergency_coordinator": true},
         { "callsign": "KO6KCF", "name": "Lawrence"},
         { "callsign": "AI6KG", "name": "Chris"},
         { "callsign": "KO6KNT", "name": "Guillaume"},
@@ -62,7 +62,7 @@
         { "callsign": "NE5NA", "name": "Wouter"},
         { "callsign": "K6PAO", "name": "Greg"},
         { "callsign": "KG6PED", "name": "Brian"},
-        { "callsign": "KI6PUR", "name": "Rick", "emergency_manager": true},
+        { "callsign": "KI6PUR", "name": "Rick", "assistant_emergency_coordinator": true},
         { "callsign": "KI6PUW", "name": "Stephanie"},
         { "callsign": "KI6PVA", "name": "Norm"},
         { "callsign": "AG6SR", "name": "Paul"},
@@ -79,6 +79,6 @@
         { "callsign": "N6YXJ", "name": "Mark"},
         { "callsign": "K6ZJI", "name": "Keith"},
         { "callsign": "KN6ZNG", "name": "Robert"},
-        { "callsign": "KF6ZSQ", "name": "Phil", "emergency_manager": true}
+        { "callsign": "KF6ZSQ", "name": "Phil", "assistant_emergency_coordinator": true}
     ]
 }

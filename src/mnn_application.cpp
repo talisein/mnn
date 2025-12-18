@@ -20,6 +20,7 @@
 #include "mnn_application.hpp"
 #include "mnn_application_window.hpp"
 #include "mnn.hpp"
+#include "config.hpp"
 #include <print>
 
 namespace mnn
@@ -62,7 +63,7 @@ namespace mnn
     Application::create()
     {
         return Object::create<Application>(prop_application_id(),
-                                           "radio.ki6kvz.MondayNightNet",
+                                           APP_ID,
                                            prop_flags(),
                                            Gio::Application::Flags::DEFAULT_FLAGS);
     }
