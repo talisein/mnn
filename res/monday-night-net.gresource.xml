@@ -2,5 +2,8 @@
 <gresources>
   <gresource prefix="/radio/ki6kvz/MondayNightNet">
     <file>default-net.json</file>
+    <file>mnn-app-window.ui</file>
+    <file>mnn-callsign-list-view-cell.ui</file>
+    <file>mnn-callsign-list-item-factory.ui</file>
   </gresource>
 </gresources>

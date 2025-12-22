@@ -3,16 +3,19 @@
 <schemalist>
   <schema id="radio.ki6kvz.MondayNightNet.State" path="/radio/ki6kvz/MondayNightNet/State/">
     <key name="width" type="i">
-      <default>640</default>
+      <default>700</default>
     </key>
     <key name="height" type="i">
-      <default>640</default>
+      <default>500</default>
     </key>
     <key name="is-maximized" type="b">
       <default>false</default>
     </key>
     <key name="is-fullscreen" type="b">
       <default>false</default>
+    </key>
+    <key name="current-net" type="s">
+      <default>"default-net.json"</default>
     </key>
   </schema>
 </schemalist>

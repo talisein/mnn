@@ -1,5 +1,24 @@
+/*
+    monday-night-net: An amateur radio net monitoring utility in gtk4
+    Copyright (C) 2025  Andrew Potter
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include <functional>
 #include "station.hpp"
+#include "mnn_error.hpp"
 
 PEEL_ENUM_IMPL(mnn::StationStatus, "StationStatus",
                PEEL_ENUM_VALUE(mnn::StationStatus::PENDING, "pending"),
@@ -82,7 +101,7 @@ Station::set_status(StationStatus s)
 }
 
 bool
-Station::get_is_assistant_emergency_coordinator() const
+Station::is_assistant_emergency_coordinator() const
 {
     return m.is_assistant_emergency_coordinator;
 }
@@ -95,7 +114,7 @@ Station::set_is_assistant_emergency_coordinator(bool is_assistant_emergency_coor
 }
 
 bool
-Station::get_is_acknowledged() const
+Station::is_acknowledged() const
 {
     return m.is_acknowledged;
 }
@@ -214,6 +233,29 @@ Station::set_name_cstr(const char* str)
     }
 
     notify(prop_name());
+}
+
+RefPtr<Station>
+Station::create(const nlohmann::json& j)
+{
+    if (!j.contains("name")) {
+        throw std::system_error(std::make_error_code(mnn::error::missing_name), std::format("Station record missing 'name' field: {}", j.dump()));
+    }
+    if (!j.contains("callsign")) {
+        throw std::system_error(std::make_error_code(mnn::error::missing_callsign), std::format("Station record missing 'callsign' field: {}", j.dump()));
+    }
+
+    auto name = j["name"].get<std::string>();
+    auto callsign = j["callsign"].get<std::string>();
+    auto is_aem = j.contains("assistant_emergency_coordinator") && true == j["assistant_emergency_coordinator"].get<bool>();
+    auto res = Object::create<mnn::Station>(mnn::Station::prop_name(), name.c_str(),
+                                            mnn::Station::prop_callsign(), callsign.c_str(),
+                                            mnn::Station::prop_is_assistant_emergency_coordinator(), is_aem);
+    if (j.contains("lat") && j.contains("long"))
+    {
+        res->set_location(j["lat"].get<double>(), j["long"].get<double>());
+    }
+    return res;
 }
 
 } // namespace mnn

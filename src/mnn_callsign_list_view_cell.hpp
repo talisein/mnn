@@ -18,38 +18,28 @@
 
 #pragma once
 
-#include <peel/Adw/Adw.h>
-#include <peel/Gio/Gio.h>
 #include <peel/Gtk/Gtk.h>
 #include <peel/class.h>
-#include <nlohmann/json.hpp>
+#include <peel/Strv.h>
+#include "station.hpp"
 
 namespace mnn
 {
-    class ApplicationWindow final : public peel::Adw::ApplicationWindow
+    class CallsignListViewCell final : public peel::Gtk::Box
     {
-        PEEL_SIMPLE_CLASS (ApplicationWindow, peel::Adw::ApplicationWindow);
+        PEEL_SIMPLE_CLASS(CallsignListViewCell, peel::Gtk::Box);
 
-        void init (Class *);
+        void init(Class *);
 
-        struct Members {
-            peel::RefPtr<peel::Gio::Settings> settings;
-            peel::Gtk::Entry* date_entry;
-            peel::Gtk::Popover* date_entry_popover;
-            peel::Gtk::Calendar* date_entry_calendar;
-            peel::Gtk::Entry* frequency_entry;
-            peel::Gtk::FlowBox* columns_flowbox;
-            peel::Adw::ToastOverlay* toast_overlay;
-        } m;
+        peel::Strv get_css_classes(Station*, bool is_acknowledged, StationStatus status);
 
-        void setup_net(const nlohmann::json&);
-        void on_calendar_day_selected(peel::Gtk::Calendar*);
-        void on_date_entry_icon_pressed(peel::Gtk::Entry*, peel::Gtk::Entry::IconPosition);
     protected:
         void vfunc_dispose();
 
     public:
-        [[nodiscard]] static ApplicationWindow* create(peel::Adw::Application *);
+//        PEEL_PROPERTY(peel::Type::of<Station>(), station, "station");
+
+    private:
     };
 
 } // namespace mnn

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+  <template class="MNNApplicationWindow" parent="AdwApplicationWindow">
+    <property name="title" translatable="yes">Monday Night Net</property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwToastOverlay" id="toast-overlay">
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">horizontal</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Date:</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="date-entry">
+                        <property name="placeholder-text">YYYY-MM-DD</property>
+                        <property name="secondary-icon-name">pan-down-symbolic</property>
+                        <property name="secondary-icon-activatable">True</property>
+                        <property name="input-purpose">number</property>
+                        <signal name="icon-press" handler="on_date_entry_icon_pressed"/>
+                        <child>
+                          <object class="GtkPopover" id="date-entry-popover">
+                            <property name="has-arrow">True</property>
+                            <property name="autohide">True</property>
+                            <child>
+                              <object class="GtkCalendar" id="date-entry-calendar">
+                                <signal name="day-selected" handler="on_calendar_day_selected"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Frequency</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="frequency-entry">
+                        <property name="placeholder-text">146.535</property>
+                        <property name="input-purpose">number</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">SS Callsign</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="callsign-entry">
+                        <property name="placeholder-text"></property>
+                        <property name="input-hints">uppercase-chars</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">SS Name</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="name-entry">
+                        <property name="input-purpose">name</property>
+                      </object>
+                    </child>
+                  </object><!-- top row box -->
+                </child>
+                <child>
+                  <object class="GtkFlowBox" id="columns-flowbox">
+                    <property name="orientation">horizontal</property>
+                  </object>
+                </child>
+              </object><!-- root content box -->
+            </child>
+          </object><!-- toast overlay -->
+        </property>
+        <child type="bottom">
+          <object class="GtkActionBar"/>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>

@@ -1,9 +1,11 @@
 #include <boost/ut.hpp>
+#include <nlohmann/json.hpp>
 #include "station.hpp"
 
 int main() {
     using namespace boost::ut;
     using namespace std::literals;
+    using namespace nlohmann::literals;
     using namespace peel;
 
     Type::of<mnn::Station>().ensure();
@@ -104,5 +106,32 @@ int main() {
         expect(eq(false, p->has_location()));
         expect(eq(SHUMATE_MIN_LATITUDE, p->get_latitude()));
         expect(eq(SHUMATE_MIN_LONGITUDE, p->get_longitude()));
+    };
+
+    "create"_test = [] {
+        expect(throws<std::system_error>([] {
+            auto p = mnn::Station::create(R"({ "callsign": "KI6KVZ" })"_json);
+        }));
+        expect(throws<std::system_error>([] {
+            auto p = mnn::Station::create(R"({ "name": "Test" })"_json);
+        }));
+
+        auto p = mnn::Station::create(R"(
+{ "callsign": "KI6KVZ",
+  "name": "Andrew",
+  "assistant_emergency_coordinator": true,
+  "lat": 37.403684,
+  "long": -122.06438
+}
+)"_json);
+        expect(nullptr != p);
+        expect(eq("Andrew"sv, p->get_name()));
+        expect(eq("KI6KVZ"sv, p->get_callsign()));
+        expect(eq(true, p->is_assistant_emergency_coordinator()));
+        expect(eq(true, p->has_location()));
+        expect(eq(37.403684, p->get_latitude()));
+        expect(eq(-122.06438, p->get_longitude()));
+
+
     };
 }
