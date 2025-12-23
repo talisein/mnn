@@ -3,6 +3,19 @@
   <template class="GtkColumnViewCell">
     <property name="child">
       <object class="MNNCallsignListViewCell">
+        <binding name="css-classes">
+          <closure type="GStrv" function="get_css_classes">
+            <lookup name="is-acknowledged" type="Station">
+              <lookup name="item">GtkListItem</lookup>
+            </lookup>
+            <lookup name="status" type="Station">
+              <lookup name="item">GtkListItem</lookup>
+            </lookup>
+            <lookup name="is-assistant-emergency-coordinator" type="Station">
+              <lookup name="item">GtkListItem</lookup>
+            </lookup>
+          </closure>
+        </binding>
         <property name="spacing">5</property>
         <child>
           <object class="GtkLabel">
@@ -34,11 +47,18 @@
             <property name="single-line-mode">True</property>
             <binding name="label">
               <lookup name="name" type="Station">
-                <lookup name="item">GtkListItem</lookup>
+                <lookup name="item">GtkColumnViewCell</lookup>
               </lookup>
             </binding>
           </object>
         </child>
+        <child>
+          <object class="GtkToggleButton">
+            <property name ="label">Direct</property>
+            <signal name="clicked" handler="on_heard_direct_clicked" object="GtkListItem" swapped="no"/>
+          </object>
+        </child>
+
       </object>
     </property>
   </template>

@@ -5,5 +5,6 @@
     <file>mnn-app-window.ui</file>
     <file>mnn-callsign-list-view-cell.ui</file>
     <file>mnn-callsign-list-item-factory.ui</file>
+    <file>style.css</file>
   </gresource>
 </gresources>

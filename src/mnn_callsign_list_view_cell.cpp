@@ -20,6 +20,8 @@
 #include <peel/widget-template.h>
 #include <peel/GLib/GLib.h>
 
+
+
 namespace mnn
 {
 using namespace peel;
@@ -61,3 +63,35 @@ CallsignListViewCell::get_css_classes(Station*, bool is_acknowledged, StationSta
 
 
 } // namespace mnn
+
+
+extern "C" {
+
+gchar**
+get_css_classes(GObject* gobj, gboolean is_acknowledged, int status, gboolean is_aec)
+{
+    //auto cell = reinterpret_cast<peel::Gtk::ColumnView::Cell*>(GTK_COLUMN_VIEW_CELL(gobj));
+    g_autoptr(GStrvBuilder) builder = g_strv_builder_new ();
+    if (!is_acknowledged && status != std::to_underlying(mnn::StationStatus::PENDING)) {
+        g_strv_builder_add (builder, "unacknowledged");
+    }
+    if (is_aec) {
+        g_strv_builder_add (builder, "is-aec");
+    }
+    g_print("Status: %d is_aec: %d\n", status, is_aec);
+
+    return g_strv_builder_end (builder);
+}
+
+void
+on_heard_direct_clicked(GtkButton* self, gpointer user_data)
+{
+    auto cell = reinterpret_cast<peel::Gtk::ColumnView::Cell*>(GTK_COLUMN_VIEW_CELL(user_data));
+    g_print("user data is %p\n", user_data);
+    //auto button = reinterpret_cast<peel::Gtk::Button*>(self);
+    auto station = reinterpret_cast<mnn::Station*>(cell->get_item());
+    g_print("station is %p\n", user_data);
+    station->set_status(mnn::StationStatus::HEARD_DIRECT);
+}
+
+}
