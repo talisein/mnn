@@ -1,0 +1,33 @@
+# English translations for MNN package.
+# Copyright (C) 2025 THE MNN'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the MNN package.
+# Automatically generated, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: MNN\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-12-28 11:06-0800\n"
+"PO-Revision-Date: 2025-12-12 10:38-0800\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Monday Night Net"
+msgstr "Monday Night Net"
+
+msgid "Invalid Net Definition provided. no meta or version invalid"
+msgstr ""
+
+msgid "Invalid Net Definition provided: No columns defined"
+msgstr ""
+
+msgid "Invalid Net Definition provided: No valid columns (need begin and end)"
+msgstr ""
+
+msgid "Callsign"
+msgstr ""
