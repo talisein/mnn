@@ -71,6 +71,11 @@ if get_option('debug')
   add_project_arguments('-DG_ENABLE_DEBUG', language: ['c', 'cpp'])
 endif
 
+app_id = 'radio.ki6kvz.MondayNightNet'
+if get_option('development')
+  app_id = '@0@.Devel'.format(app_id)
+endif
+
 subdir('po')
 subdir('res')
 subdir('src')

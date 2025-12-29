@@ -149,7 +149,7 @@ namespace mnn
     get_default_net()
     {
         auto net_resource = reinterpret_cast<Gio::Resource*>(mnn_resources_get_resource());
-        auto net_bytes    = net_resource->lookup_data("/radio/ki6kvz/MondayNightNet/default-net.json",
+        auto net_bytes    = net_resource->lookup_data(RESOURCE_BASEPATH "/default-net.json",
                                                       Gio::Resource::LookupFlags::NONE,
                                                       nullptr);
         return nlohmann::json::parse(net_bytes->get_data());

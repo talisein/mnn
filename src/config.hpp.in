@@ -22,7 +22,11 @@
 #define MNN_HAS_STACKTRACE @has_stacktrace@
 #define MNN_HAS_CORE_FOUNDATION @has_core_foundation@
 
+#define RESOURCE_BASEPATH "@resource_basepath@"
+
 constexpr char LOCALEDIR[] = @locale_dir@;
 constexpr char REPO_ISSUES_LINK[] = "https://github.com/talisein/mnn/issues";
 constexpr char PACKAGE_VERSION[] = "@project_version@";
 constexpr char APP_ID[] = "@app_id@";
+constexpr char SCHEMA_PATH[] = "@schema_path@";
+constexpr char SCHEMA_ID[] = "@schema_id@";

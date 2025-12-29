@@ -19,6 +19,7 @@
 #include "mnn.hpp"
 #include "mnn_application_window.hpp"
 #include "station.hpp"
+#include "config.hpp"
 #include <glib/gi18n.h>
 #include <peel/widget-template.h>
 #include <ranges>
@@ -55,7 +56,7 @@ namespace mnn
 
         add_binding_action (GDK_KEY_T, Gdk::ModifierType::CONTROL_MASK, "win.new-tab", nullptr);
         */
-        set_template_from_resource("/radio/ki6kvz/MondayNightNet/mnn-app-window.ui");
+        set_template_from_resource(RESOURCE_BASEPATH "/mnn-app-window.ui");
 
         PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.date_entry, "date-entry");
         PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.date_entry_popover, "date-entry-popover");
@@ -72,7 +73,7 @@ namespace mnn
     {
         new (&m) Members;
         init_template();
-        m.settings = Gio::Settings::create("radio.ki6kvz.MondayNightNet.State");
+        m.settings = Gio::Settings::create(SCHEMA_ID);
         m.settings->bind("width", this, "default-width", Gio::Settings::BindFlags::DEFAULT);
         m.settings->bind("height", this, "default-height", Gio::Settings::BindFlags::DEFAULT);
         m.settings->bind("is-maximized", this, "maximized", Gio::Settings::BindFlags::DEFAULT);
@@ -128,7 +129,7 @@ namespace mnn
             auto station = Station::create(s);
             store->append(station);
         }
-        auto callsign_factory = Gtk::BuilderListItemFactory::create_from_resource(nullptr, "/radio/ki6kvz/MondayNightNet/mnn-callsign-list-item-factory.ui");
+        auto callsign_factory = Gtk::BuilderListItemFactory::create_from_resource(nullptr, RESOURCE_BASEPATH "/mnn-callsign-list-item-factory.ui");
 
         for (const auto& col : vol_view) {
             auto filter = Gtk::CustomFilter::create([begin = col["begin"].get<std::string>(), end = col["end"].get<std::string>()]

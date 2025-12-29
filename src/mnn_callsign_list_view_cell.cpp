@@ -17,6 +17,7 @@
 */
 
 #include "mnn_callsign_list_view_cell.hpp"
+#include "config.hpp"
 #include <peel/widget-template.h>
 #include <peel/GLib/GLib.h>
 
@@ -39,7 +40,7 @@ void
 CallsignListViewCell::Class::init()
 {
     override_vfunc_dispose<CallsignListViewCell>();
-    set_template_from_resource("/radio/ki6kvz/MondayNightNet/mnn-callsign-list-view-cell.ui");
+    set_template_from_resource(RESOURCE_BASEPATH "/mnn-callsign-list-view-cell.ui");
     PEEL_WIDGET_TEMPLATE_BIND_CALLBACK(CallsignListViewCell, get_css_classes);
 
 }

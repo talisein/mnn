@@ -5,11 +5,11 @@ if get_option('development')
 endif
 
 conf_data = configuration_data()
+conf_data.merge_from(resource_conf_data)
 conf_data.set10('has_backtrace', has_backtrace)
 conf_data.set10('has_stacktrace', has_stacktrace)
 conf_data.set10('has_core_foundation', libcorefoundation.found())
 conf_data.set('project_version', meson.project_version())
-conf_data.set('app_id', app_id)
 conf_data.set_quoted('locale_dir', join_paths(get_option('prefix'), get_option('datadir'), 'locale'))
 
 conf = configure_file(input: 'config.hpp.in',

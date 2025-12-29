@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
-  <gresource prefix="/radio/ki6kvz/MondayNightNet">
+  <gresource prefix="@resource_basepath@">
     <file>default-net.json</file>
     <file>mnn-app-window.ui</file>
     <file>mnn-callsign-list-view-cell.ui</file>

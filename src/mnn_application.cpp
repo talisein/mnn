@@ -49,11 +49,6 @@ namespace mnn
     Application::vfunc_activate ()
     {
         parent_vfunc_activate<Application> ();
-        auto css = Gtk::CssProvider::create();
-        css->load_from_resource("/radio/ki6kvz/MondayNightNet/style.css");
-        auto disp = Gdk::Display::get_default();
-        Gtk::StyleContext::add_provider_for_display(disp, css, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
         ApplicationWindow *window = ApplicationWindow::create (this);
         window->present ();
     }
