@@ -20,8 +20,7 @@
 #include "config.hpp"
 #include <peel/widget-template.h>
 #include <peel/GLib/GLib.h>
-
-
+#include <peel/GObject/Binding.h>
 
 namespace mnn
 {
@@ -41,8 +40,10 @@ CallsignListViewCell::Class::init()
 {
     override_vfunc_dispose<CallsignListViewCell>();
     set_template_from_resource(RESOURCE_BASEPATH "/mnn-callsign-list-view-cell.ui");
-    PEEL_WIDGET_TEMPLATE_BIND_CALLBACK(CallsignListViewCell, get_css_classes);
 
+    PEEL_WIDGET_TEMPLATE_BIND_CHILD (CallsignListViewCell, m.prefix_label, "prefix-label");
+    PEEL_WIDGET_TEMPLATE_BIND_CHILD (CallsignListViewCell, m.suffix_label, "suffix-label");
+    PEEL_WIDGET_TEMPLATE_BIND_CHILD (CallsignListViewCell, m.name_label, "name-label");
 }
 
 void
@@ -51,48 +52,90 @@ CallsignListViewCell::init(Class*)
     init_template();
 }
 
-
-Strv
-CallsignListViewCell::get_css_classes(Station*, bool is_acknowledged, StationStatus status)
+FloatPtr<CallsignListViewCell>
+CallsignListViewCell::create() noexcept
 {
-    auto builder = GLib::StrvBuilder::create();
-    if (!is_acknowledged && status != StationStatus::PENDING) {
-        builder->add("unacknowledged");
-    }
-    return GLib::StrvBuilder::unref_to_strv(builder);
+  return Object::create<CallsignListViewCell>();
 }
 
-
-} // namespace mnn
-
-
-extern "C" {
-
-gchar**
-get_css_classes(GObject* gobj, gboolean is_acknowledged, int status, gboolean is_aec)
+RefPtr<Gtk::SignalListItemFactory>
+CallsignListViewCell::make_factory() noexcept
 {
-    //auto cell = reinterpret_cast<peel::Gtk::ColumnView::Cell*>(GTK_COLUMN_VIEW_CELL(gobj));
-    g_autoptr(GStrvBuilder) builder = g_strv_builder_new ();
-    if (!is_acknowledged && status != std::to_underlying(mnn::StationStatus::PENDING)) {
-        g_strv_builder_add (builder, "unacknowledged");
-    }
-    if (is_aec) {
-        g_strv_builder_add (builder, "is-aec");
-    }
-    g_print("Status: %d is_aec: %d\n", status, is_aec);
+    RefPtr<Gtk::SignalListItemFactory> factory = Gtk::SignalListItemFactory::create();
+    factory->connect_setup (
+        [] (Gtk::SignalListItemFactory *factory, Object *obj)
+        {
+            Gtk::ListItem *item = obj->cast<Gtk::ListItem> ();
+            item->set_child (CallsignListViewCell::create());
+        });
 
-    return g_strv_builder_end (builder);
+    struct Bindings {
+        SignalConnection status_conn;
+        SignalConnection is_aec_conn;
+        SignalConnection is_ack_conn;
+    };
+
+    factory->connect_bind (
+        [] (Gtk::SignalListItemFactory *factory, Object *obj)
+        {
+            Gtk::ListItem *item = obj->cast<Gtk::ListItem>();
+            CallsignListViewCell *callsign_cell = item->get_child()->cast<CallsignListViewCell>();
+            Station *station = item->get_item()->cast<Station>();
+            auto binds = new Bindings{};
+
+            callsign_cell->m.prefix_label->set_label(station->get_prefix_cstr());
+            callsign_cell->m.suffix_label->set_label(station->get_suffix_cstr());
+            callsign_cell->m.name_label->set_label(station->get_name_cstr());
+
+            callsign_cell->update_css_classes(station);
+
+            auto css_lambda = [callsign_cell] (Object *s, GObject::ParamSpec*) {
+                auto station = s->cast<Station>();
+                callsign_cell->update_css_classes(station);
+            };
+            binds->status_conn = station->connect_notify(Station::prop_status(), decltype(css_lambda){css_lambda});
+            binds->is_aec_conn = station->connect_notify(Station::prop_is_assistant_emergency_coordinator(), decltype(css_lambda){css_lambda});
+            binds->is_ack_conn = station->connect_notify(Station::prop_is_acknowledged(), decltype(css_lambda){css_lambda});
+
+            item->set_data("callsign-cell-bindings", binds, [](gpointer b) { delete (Bindings*)b; });
+        });
+
+    factory->connect_unbind(
+        [] (Gtk::SignalListItemFactory *factory, Object *obj)
+        {
+            Gtk::ListItem *item = obj->cast<Gtk::ListItem>();
+
+            auto binds = static_cast<Bindings*>(item->steal_data("callsign-cell-bindings"));
+            delete binds;
+        });
+  return factory;
 }
 
 void
-on_heard_direct_clicked(GtkButton* self, gpointer user_data)
+CallsignListViewCell::update_css_classes(Station* station) noexcept
 {
-    auto cell = reinterpret_cast<peel::Gtk::ColumnView::Cell*>(GTK_COLUMN_VIEW_CELL(user_data));
-    g_print("user data is %p\n", user_data);
-    //auto button = reinterpret_cast<peel::Gtk::Button*>(self);
-    auto station = reinterpret_cast<mnn::Station*>(cell->get_item());
-    g_print("station is %p\n", user_data);
-    station->set_status(mnn::StationStatus::HEARD_DIRECT);
+    const auto is_unack = !station->is_acknowledged() && station->get_status() != mnn::StationStatus::PENDING;
+    const auto is_aec   = station->is_assistant_emergency_coordinator();
+
+    if (is_unack && is_aec) {
+        set_css_classes((const char*[]){
+                "unacknowledged",
+                "is-aec",
+                nullptr
+            });
+    } else if (is_unack && !is_aec) {
+        set_css_classes((const char*[]){
+                "unacknowledged",
+                nullptr
+            });
+    } else if (!is_unack && is_aec) {
+        set_css_classes((const char*[]){
+                "is-aec",
+                nullptr
+            });
+    } else if (!is_unack && !is_aec) {
+        set_css_classes((const char*[]){nullptr});
+    }
 }
 
-}
+} // namespace mnn

@@ -17,5 +17,11 @@
     <key name="current-net" type="s">
       <default>"default-net.json"</default>
     </key>
+    <key name="callsign" type="s">
+      <default>""</default>
+    </key>
+    <key name="name" type="s">
+      <default>""</default>
+    </key>
   </schema>
 </schemalist>

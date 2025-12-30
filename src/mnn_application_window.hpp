@@ -38,6 +38,8 @@ namespace mnn
             peel::Gtk::Popover* date_entry_popover;
             peel::Gtk::Calendar* date_entry_calendar;
             peel::Gtk::Entry* frequency_entry;
+            peel::Gtk::EntryBuffer* callsign_entry_buffer;
+            peel::Gtk::EntryBuffer* name_entry_buffer;
             peel::Gtk::FlowBox* columns_flowbox;
             peel::Adw::ToastOverlay* toast_overlay;
         } m;

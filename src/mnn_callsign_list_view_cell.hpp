@@ -25,21 +25,29 @@
 
 namespace mnn
 {
-    class CallsignListViewCell final : public peel::Gtk::Box
-    {
-        PEEL_SIMPLE_CLASS(CallsignListViewCell, peel::Gtk::Box);
+  class CallsignListViewCell final : public peel::Gtk::Box
+  {
+    PEEL_SIMPLE_CLASS(CallsignListViewCell, peel::Gtk::Box);
 
-        void init(Class *);
+    void init(Class *);
 
-        peel::Strv get_css_classes(Station*, bool is_acknowledged, StationStatus status);
+    struct Members {
+      peel::Gtk::Label* prefix_label;
+      peel::Gtk::Label* suffix_label;
+      peel::Gtk::Label* name_label;
+    } m;
 
-    protected:
-        void vfunc_dispose();
+    void vfunc_dispose();
 
-    public:
-//        PEEL_PROPERTY(peel::Type::of<Station>(), station, "station");
+    void update_css_classes(Station*) noexcept;
 
-    private:
-    };
+  public:
+    static peel::FloatPtr<CallsignListViewCell> create() noexcept;
+
+    static peel::RefPtr<peel::Gtk::SignalListItemFactory> make_factory() noexcept;
+
+  private:
+  };
+
 
 } // namespace mnn

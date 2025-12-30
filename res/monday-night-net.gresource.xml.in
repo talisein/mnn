@@ -4,7 +4,10 @@
     <file>default-net.json</file>
     <file>mnn-app-window.ui</file>
     <file>mnn-callsign-list-view-cell.ui</file>
-    <file>mnn-callsign-list-item-factory.ui</file>
+    <file>mnn-button-list-view-cell.ui</file>
     <file>style.css</file>
+  </gresource>
+  <gresource prefix="@resource_basepath@/icons/scalable/actions/">
+    <file preprocess="xml-stripblanks">check-round-outline2-symbolic.svg</file>
   </gresource>
 </gresources>

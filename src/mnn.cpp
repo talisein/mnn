@@ -23,6 +23,7 @@
 #include "mnn_application.hpp"
 #include "mnn_application_window.hpp"
 #include "mnn_callsign_list_view_cell.hpp"
+#include "mnn_button_list_view_cell.hpp"
 #include "station.hpp"
 #include "config.hpp"
 
@@ -143,6 +144,7 @@ namespace mnn
         Type::of<mnn::ApplicationWindow>().ensure();
         Type::of<mnn::Station>().ensure();
         Type::of<mnn::CallsignListViewCell>().ensure();
+        Type::of<mnn::ButtonListViewCell>().ensure();
     }
 
     nlohmann::json

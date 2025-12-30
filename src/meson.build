@@ -16,7 +16,9 @@ conf = configure_file(input: 'config.hpp.in',
                       output: 'config.hpp',
                       configuration: conf_data)
 
-libsrc = ['net_definition.cpp', 'mnn.cpp', 'mnn_error.cpp', 'mnn_application_window.cpp', 'mnn_application.cpp', 'station.cpp', 'mnn_callsign_list_view_cell.cpp']
+libsrc = ['net_definition.cpp', 'mnn.cpp', 'mnn_error.cpp',
+          'mnn_application_window.cpp', 'mnn_application.cpp', 'station.cpp',
+          'mnn_callsign_list_view_cell.cpp', 'mnn_button_list_view_cell.cpp']
 libmnn = static_library('mnn', libsrc, res, conf,
                         dependencies: deps)
 

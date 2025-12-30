@@ -89,6 +89,13 @@ namespace mnn
         StationStatus get_status() const;
         void set_status(StationStatus status);
 
+        const char* get_name_cstr();
+        const char* get_callsign_cstr();
+        const char* get_prefix_cstr();
+        const char* get_suffix_cstr();
+        void set_name_cstr(const char* str);
+        void set_callsign_cstr(const char* str);
+
         static peel::RefPtr<Station> create(const nlohmann::json&);
 
     protected:
@@ -96,14 +103,9 @@ namespace mnn
         double vfunc_get_longitude() const noexcept;
         void vfunc_set_location(double, double) noexcept;
 
+
     private:
         void update_prefix_suffix();
-        const char* get_name_cstr();
-        const char* get_callsign_cstr();
-        const char* get_prefix_cstr();
-        const char* get_suffix_cstr();
-        void set_name_cstr(const char* str);
-        void set_callsign_cstr(const char* str);
 
         template<typename F>
         static void

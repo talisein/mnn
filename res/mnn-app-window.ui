@@ -17,6 +17,7 @@
                 <child>
                   <object class="GtkBox">
                     <property name="orientation">horizontal</property>
+                    <property name="spacing">5</property>
                     <child>
                       <object class="GtkLabel">
                         <property name="label" translatable="yes">Date:</property>
@@ -62,6 +63,9 @@
                       <object class="GtkEntry" id="callsign-entry">
                         <property name="placeholder-text"></property>
                         <property name="input-hints">uppercase-chars</property>
+                        <property name="buffer">
+                          <object class="GtkEntryBuffer" id="callsign-entry-buffer"/>
+                        </property>
                       </object>
                     </child>
                     <child>
@@ -72,6 +76,9 @@
                     <child>
                       <object class="GtkEntry" id="name-entry">
                         <property name="input-purpose">name</property>
+                        <property name="buffer">
+                          <object class="GtkEntryBuffer" id="name-entry-buffer"/>
+                        </property>
                       </object>
                     </child>
                   </object><!-- top row box -->
