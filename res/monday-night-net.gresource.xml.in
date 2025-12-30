@@ -5,6 +5,7 @@
     <file>mnn-app-window.ui</file>
     <file>mnn-callsign-list-view-cell.ui</file>
     <file>mnn-button-list-view-cell.ui</file>
+    <file>mnn-station-column-view.ui</file>
     <file>style.css</file>
   </gresource>
   <gresource prefix="@resource_basepath@/icons/scalable/actions/">

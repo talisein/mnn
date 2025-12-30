@@ -20,6 +20,7 @@
 #include "mnn_application_window.hpp"
 #include "mnn_callsign_list_view_cell.hpp"
 #include "mnn_button_list_view_cell.hpp"
+#include "mnn_station_column_view.hpp"
 #include "station.hpp"
 #include "config.hpp"
 #include <glib/gi18n.h>
@@ -141,12 +142,18 @@ namespace mnn
     auto button_factory = ButtonListViewCell::make_factory();
 
     for (const auto& col : col_view) {
+      auto station_col = StationColumnView::create(store,
+                                                   col["begin"].get<std::string>().front(),
+                                                   col["end"].get<std::string>().front());
+      m.columns_flowbox->append(station_col);
+      /*
       auto filter = Gtk::CustomFilter::create([begin = col["begin"].get<std::string>(), end = col["end"].get<std::string>()]
                                               (Object* o) -> bool {
         auto station = o->cast<Station>();
         auto suf = station->get_property(Station::prop_suffix());
         return suf && *suf >= begin.front() && *suf <= end.front();
       });
+
       auto box = Gtk::Box::create(Gtk::Orientation::VERTICAL, 2);
       auto filter_model = Gtk::FilterListModel::create(store, filter);
       auto selection_model = Gtk::NoSelection::create(filter_model);
@@ -163,6 +170,7 @@ namespace mnn
       box->append(std::move(view));
       box->append(std::move(column_total_box));
       m.columns_flowbox->append(box);
+      */
     }
 
 
