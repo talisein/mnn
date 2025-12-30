@@ -1,26 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="MNNCallsignListViewCell">
+    <property name="name">callsign-cell</property>
     <property name="orientation">horizontal</property>
     <property name="spacing">5</property>
+    <property name="can-focus">False</property>
     <child>
-      <object class="GtkLabel" id="prefix-label">
+      <object class="GtkInscription" id="prefix-label">
+        <style>
+          <class name="callsign-inscription"/>
+        </style>
         <property name="xalign">0</property>
-        <property name="width-chars">4</property>
-        <property name="single-line-mode">True</property>
+        <property name="nat-chars">3</property>
+        <property name="min-chars">3</property>
+        <property name="nat-lines">1</property>
       </object>
     </child>
     <child>
-      <object class="GtkLabel" id="suffix-label">
+      <object class="GtkInscription" id="suffix-label">
+        <style>
+          <class name="callsign-inscription"/>
+        </style>
         <property name="xalign">0</property>
-        <property name="width-chars">4</property>
-        <property name="single-line-mode">True</property>
+        <property name="nat-chars">3</property>
+        <property name="min-chars">3</property>
+        <property name="nat-lines">1</property>
       </object>
     </child>
     <child>
-      <object class="GtkLabel" id="name-label">
+      <object class="GtkInscription" id="name-label">
+        <style>
+          <class name="name-inscription"/>
+        </style>
         <property name="xalign">0</property>
-        <property name="single-line-mode">True</property>
+        <property name="nat-chars">10</property>
+        <property name="nat-lines">1</property>
       </object>
     </child>
   </template>

@@ -83,9 +83,9 @@ CallsignListViewCell::make_factory() noexcept
             Station *station = item->get_item()->cast<Station>();
             auto binds = new Bindings{};
 
-            callsign_cell->m.prefix_label->set_label(station->get_prefix_cstr());
-            callsign_cell->m.suffix_label->set_label(station->get_suffix_cstr());
-            callsign_cell->m.name_label->set_label(station->get_name_cstr());
+            callsign_cell->m.prefix_label->set_text(station->get_prefix_cstr());
+            callsign_cell->m.suffix_label->set_text(station->get_suffix_cstr());
+            callsign_cell->m.name_label->set_text(station->get_name_cstr());
 
             callsign_cell->update_css_classes(station);
 

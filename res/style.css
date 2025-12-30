@@ -1,8 +1,28 @@
-.is-aec {
-  background-color: rgba(255, 0, 0, .2);
+#callsign-cell {
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 3px solid transparent;
 }
 
-.unacknowledged {
-  font-weight: 999;
-  color: white;
+
+#callsign-cell.is-aec {
+    border-color: red;
+}
+
+#callsign-cell.unacknowledged {
+    outline: 2px solid @accent_color;
+    outline-offset: -1px;
+}
+
+.check-toggle:checked image {
+    color: @success_color;
+}
+
+.callsign-inscription {
+    font-family: "Monospace";
+}
+
+flowboxchild:selected,
+flowboxchild:focus {
+  background-color: transparent;
 }

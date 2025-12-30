@@ -32,9 +32,9 @@ namespace mnn
     void init(Class *);
 
     struct Members {
-      peel::Gtk::Label* prefix_label;
-      peel::Gtk::Label* suffix_label;
-      peel::Gtk::Label* name_label;
+      peel::Gtk::Inscription* prefix_label;
+      peel::Gtk::Inscription* suffix_label;
+      peel::Gtk::Inscription* name_label;
     } m;
 
     void vfunc_dispose();
