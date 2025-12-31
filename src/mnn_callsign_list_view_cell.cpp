@@ -93,11 +93,9 @@ CallsignListViewCell::make_factory() noexcept
                 auto station = s->cast<Station>();
                 callsign_cell->update_css_classes(station);
             };
-            binds->status_conn = station->connect_notify(Station::prop_status(), decltype(css_lambda){css_lambda});
-            binds->is_aec_conn = station->connect_notify(Station::prop_is_assistant_emergency_coordinator(), decltype(css_lambda){css_lambda});
-            binds->is_ack_conn = station->connect_notify(Station::prop_is_acknowledged(), decltype(css_lambda){css_lambda});
+            binds->status_conn = station->connect_notify(std::move(css_lambda));
 
-            item->set_data("callsign-cell-bindings", binds, [](gpointer b) { delete (Bindings*)b; });
+            item->set_data("callsign-cell-bindings", binds, [](gpointer b) { delete static_cast<Bindings*>(b); });
         });
 
     factory->connect_unbind(

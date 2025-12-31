@@ -26,17 +26,6 @@
 
 using namespace peel;
 
-namespace
-{
-  struct Unbinder {
-    void operator()(GObject::Binding* binding) {
-      binding->unbind();
-    }
-  };
-
-  using Binding_p = std::unique_ptr<GObject::Binding, Unbinder>;
-}
-
 namespace mnn
 {
 
@@ -86,9 +75,15 @@ namespace mnn
       });
 
     struct Bindings {
-      Binding_p bind_ack;
-      Binding_p bind_direct;
-      Binding_p bind_relay;
+      RefPtr<GObject::Binding> bind_ack;
+      RefPtr<GObject::Binding> bind_direct;
+      RefPtr<GObject::Binding> bind_relay;
+
+      ~Bindings() {
+        if (bind_ack) bind_ack->unbind();
+        if (bind_direct) bind_direct->unbind();
+        if (bind_relay) bind_relay->unbind();
+      }
     };
 
     factory->connect_bind (
@@ -99,78 +94,84 @@ namespace mnn
         Station *station = item->get_item()->cast<Station>();
         auto binds = new Bindings{};
 
-        binds->bind_ack.reset(Object::bind_property(station,
-                                                    station->prop_is_acknowledged(),
-                                                    button_cell->m.acknowledged_button,
-                                                    button_cell->m.acknowledged_button->prop_active(),
-                                                    GObject::BindingFlags::BIDIRECTIONAL | GObject::BindingFlags::SYNC_CREATE
-                                ));
+        binds->bind_ack = Object::bind_property(station,
+                                                station->prop_is_acknowledged(),
+                                                button_cell->m.acknowledged_button,
+                                                button_cell->m.acknowledged_button->prop_active(),
+                                                GObject::BindingFlags::BIDIRECTIONAL | GObject::BindingFlags::SYNC_CREATE
+          );
 
-        binds->bind_direct.reset(Object::bind_property(station,
-                                                       station->prop_status(),
-                                                       button_cell->m.direct_button,
-                                                       button_cell->m.direct_button->prop_active(),
-                                                       GObject::BindingFlags::BIDIRECTIONAL | GObject::BindingFlags::SYNC_CREATE,
-                                                       [] (StationStatus status) -> bool {
-                                                         if (status == StationStatus::HEARD_DIRECT) {
-                                                           return true;
+        binds->bind_direct = Object::bind_property(station,
+                                                   station->prop_status(),
+                                                   button_cell->m.direct_button,
+                                                   button_cell->m.direct_button->prop_active(),
+                                                   GObject::BindingFlags::BIDIRECTIONAL | GObject::BindingFlags::SYNC_CREATE,
+                                                   [] (StationStatus status) -> bool {
+                                                     if (status == StationStatus::HEARD_DIRECT) {
+                                                       return true;
+                                                     } else {
+                                                       return false;
+                                                     }
+                                                   },
+                                                   [] (GObject::Binding* binding, const GObject::Value* from_value, GObject::Value* to_value) -> bool {
+                                                     auto station = binding->get_source()->cast<Station>();
+                                                     if (!station) return false;
+                                                     const bool is_active = from_value->template get<bool>();
+                                                     if (is_active) {
+                                                       to_value->template set<StationStatus>(StationStatus::HEARD_DIRECT);
+                                                     } else { // not direct...
+                                                       if (station->is_acknowledged()) {
+                                                         // If its acknowledged but not direct, it must be relay
+                                                         to_value->set<StationStatus>(StationStatus::HEARD_RELAY);
+                                                       } else {
+                                                         // Unacknowledged, not direct. If its relay, leave it alone. Otherside set pending.
+                                                         if (station->get_status() != StationStatus::HEARD_RELAY) {
+                                                           to_value->set<StationStatus>(StationStatus::PENDING);
                                                          } else {
-                                                           return false;
+                                                           // Its already set on the station, but let's not leave the GValue unset
+                                                           to_value->set<StationStatus>(StationStatus::HEARD_RELAY);
                                                          }
-                                                       },
-                                                       [] (GObject::Binding* binding, const GObject::Value* from_value, GObject::Value* to_value) -> bool {
-                                                         auto station = binding->get_source()->cast<Station>();
-                                                         if (!station) return false;
-                                                         const bool is_active = from_value->template get<bool>();
-                                                         if (is_active) {
-                                                           to_value->template set<StationStatus>(StationStatus::HEARD_DIRECT);
-                                                         } else { // not direct...
-                                                           if (station->is_acknowledged()) {
-                                                             // If its acknowledged but not direct, it must be relay
-                                                             to_value->set<StationStatus>(StationStatus::HEARD_RELAY);
-                                                           } else {
-                                                             // Unacknowledged, not direct. If its relay, leave it alone. Otherside set pending.
-                                                             if (station->get_status() != StationStatus::HEARD_RELAY) {
-                                                               to_value->set<StationStatus>(StationStatus::PENDING);
-                                                             }
-                                                           }
-                                                         }
-                                                         return true;
                                                        }
-                                   ));
+                                                     }
+                                                     return true;
+                                                   }
+                                   );
 
-        binds->bind_relay.reset(Object::bind_property(station,
-                                                      station->prop_status(),
-                                                      button_cell->m.relay_button,
-                                                      button_cell->m.relay_button->prop_active(),
-                                                      GObject::BindingFlags::BIDIRECTIONAL | GObject::BindingFlags::SYNC_CREATE,
-                                                       [] (StationStatus status) -> bool {
-                                                         if (status == StationStatus::HEARD_RELAY) {
-                                                           return true;
-                                                         } else {
-                                                           return false;
-                                                         }
-                                                       },
-                                                       [] (GObject::Binding* binding, const GObject::Value* from_value, GObject::Value* to_value) -> bool {
-                                                         auto station = binding->get_source()->cast<Station>();
-                                                         if (!station) return false;
-                                                         const bool is_active = from_value->template get<bool>();
-                                                         if (is_active) {
-                                                           to_value->template set<StationStatus>(StationStatus::HEARD_RELAY);
-                                                         } else { // not relay...
-                                                           if (station->is_acknowledged()) {
-                                                             // If its acknowledged but not relay, it must be direct
-                                                             to_value->template set<StationStatus>(StationStatus::HEARD_DIRECT);
-                                                           } else {
-                                                             // Unacknowledged, not relay. If its direct, leave it alone. Otherside set pending.
-                                                             if (station->get_status() != StationStatus::HEARD_DIRECT) {
-                                                               to_value->template set<StationStatus>(StationStatus::PENDING);
-                                                             }
-                                                           }
-                                                         }
-                                                         return true;
-                                                       }
-                                  ));
+        binds->bind_relay = Object::bind_property(station,
+                                                  station->prop_status(),
+                                                  button_cell->m.relay_button,
+                                                  button_cell->m.relay_button->prop_active(),
+                                                  GObject::BindingFlags::BIDIRECTIONAL | GObject::BindingFlags::SYNC_CREATE,
+                                                  [] (StationStatus status) -> bool {
+                                                    if (status == StationStatus::HEARD_RELAY) {
+                                                      return true;
+                                                    } else {
+                                                      return false;
+                                                    }
+                                                  },
+                                                  [] (GObject::Binding* binding, const GObject::Value* from_value, GObject::Value* to_value) -> bool {
+                                                    auto station = binding->get_source()->cast<Station>();
+                                                    if (!station) return false;
+                                                    const bool is_active = from_value->template get<bool>();
+                                                    if (is_active) {
+                                                      to_value->template set<StationStatus>(StationStatus::HEARD_RELAY);
+                                                    } else { // not relay...
+                                                      if (station->is_acknowledged()) {
+                                                        // If its acknowledged but not relay, it must be direct
+                                                        to_value->template set<StationStatus>(StationStatus::HEARD_DIRECT);
+                                                      } else {
+                                                        // Unacknowledged, not relay. If its direct, leave it alone. Otherside set pending.
+                                                        if (station->get_status() != StationStatus::HEARD_DIRECT) {
+                                                          to_value->template set<StationStatus>(StationStatus::PENDING);
+                                                        } else {
+                                                          // Its already set on the station, but let's not leave the GValue unset
+                                                          to_value->template set<StationStatus>(StationStatus::HEARD_DIRECT);
+                                                        }
+                                                      }
+                                                    }
+                                                    return true;
+                                                  }
+          );
 
         item->set_data("button-cell-bindings", binds, [](gpointer b) { delete static_cast<Bindings*>(b); });
 
