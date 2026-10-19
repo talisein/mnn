@@ -498,6 +498,9 @@ namespace mnn
     Object::bind_property(app, Application::prop_position_lookup(),
                           window->m.map_view, StationMapView::prop_position_lookup(),
                           GObject::BindingFlags::SYNC_CREATE);
+    Object::bind_property(window->m.callsign_entry_buffer, Gtk::EntryBuffer::prop_text(),
+                          window->m.map_view, StationMapView::prop_home_callsign(),
+                          GObject::BindingFlags::SYNC_CREATE);
     return window;
   }
 

@@ -19,3 +19,7 @@ test('position_lookup', position_lookup_test, args: [ut_args], env: test_env)
 nominatim_test = executable('nominatim_test', 'test_nominatim.cpp',
                             dependencies: [test_deps, libmnn_dep])
 test('nominatim', nominatim_test, args: [ut_args], env: test_env)
+
+coordinates_test = executable('coordinates_test', 'test_coordinates.cpp',
+                              dependencies: [test_deps, libmnn_dep])
+test('coordinates', coordinates_test, args: [ut_args])

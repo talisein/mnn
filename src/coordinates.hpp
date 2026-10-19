@@ -19,7 +19,9 @@
 #pragma once
 
 #include <charconv>
+#include <algorithm>
 #include <cmath>
+#include <numbers>
 #include <optional>
 #include <string_view>
 #include <system_error>
@@ -39,6 +41,20 @@ namespace mnn
         if (ec != std::errc {} || ptr != s.data() + s.size() || !std::isfinite(v) || std::abs(v) > limit)
             return std::nullopt;
         return v;
+    }
+
+    /* Great-circle distance in statute miles between two points given in
+     * decimal degrees. */
+    inline double
+    distance_miles(double lat1, double lon1, double lat2, double lon2) noexcept
+    {
+        constexpr double earth_radius_mi = 3958.8;
+        constexpr double to_rad = std::numbers::pi / 180.0;
+        double dlat = (lat2 - lat1) * to_rad;
+        double dlon = (lon2 - lon1) * to_rad;
+        double a = std::sin(dlat / 2) * std::sin(dlat / 2)
+            + std::cos(lat1 * to_rad) * std::cos(lat2 * to_rad) * std::sin(dlon / 2) * std::sin(dlon / 2);
+        return 2 * earth_radius_mi * std::asin(std::min(1.0, std::sqrt(a)));
     }
 
 } // namespace mnn

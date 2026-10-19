@@ -18,12 +18,15 @@
 
 #pragma once
 
+#include <string>
+#include <string_view>
 #include <vector>
 #include <peel/Adw/Adw.h>
 #include <peel/Gtk/Gtk.h>
 #include <peel/Gio/Gio.h>
 #include <peel/Shumate/Marker.h>
 #include <peel/Shumate/MarkerLayer.h>
+#include <peel/Shumate/PathLayer.h>
 #include <peel/Shumate/SimpleMap.h>
 #include <peel/class.h>
 #include "station.hpp"
@@ -33,7 +36,11 @@ namespace mnn
 {
   /* A map of the net: a green pin for each station heard direct, a yellow pin
    * for each station heard via relay. Stations without a location are looked
-   * up through position-lookup once they are heard. */
+   * up through position-lookup once they are heard.
+   *
+   * home-callsign (net control) gets a house pin, tinted green or yellow
+   * once that station is itself heard. Hovering a station's pin draws a
+   * line to it from home, labeled with the distance in miles. */
   class StationMapView final : public peel::Gtk::Box
   {
     PEEL_SIMPLE_CLASS(StationMapView, peel::Gtk::Box);
@@ -51,10 +58,24 @@ namespace mnn
       bool lookup_started;
     };
 
+    struct Home {
+      std::string callsign;                          // normalized, or empty
+      peel::RefPtr<peel::Shumate::Coordinate> location; // null until located
+      peel::RefPtr<peel::Shumate::Marker> marker;    // null while no pin is shown
+      peel::RefPtr<peel::Gio::Cancellable> cancel;   // for the pending lookup
+      bool lookup_started;
+    };
+
     struct Members {
       peel::RefPtr<peel::Gio::ListModel> model;
       peel::RefPtr<PositionLookup> position_lookup;
       peel::RefPtr<peel::Shumate::MarkerLayer> marker_layer;
+      peel::RefPtr<peel::Shumate::PathLayer> path_layer;
+      peel::RefPtr<peel::Shumate::MarkerLayer> distance_layer;
+      peel::RefPtr<peel::Shumate::Marker> distance_marker;
+      peel::Gtk::Label* distance_label;              // owned by distance_marker
+      bool distance_shown;
+      Home home;
       peel::SignalConnection items_changed_conn;
       std::vector<StationWatch> stations; // parallel to positions in model
       peel::Shumate::SimpleMap* map;
@@ -69,6 +90,18 @@ namespace mnn
     StationWatch* find_watch(Station* station) noexcept;
     void on_station_changed(Station* station) noexcept;
     void update_station(StationWatch& watch) noexcept;
+    void remove_marker(StationWatch& watch) noexcept;
+    /* Whether station is net control with a known location, so the home pin
+     * stands in for its own. */
+    bool is_home(Station* station) const noexcept;
+    void update_home() noexcept;
+    /* Re-places the pins of net control and of the previous net control. */
+    void update_home_stations(std::string_view previous = {}) noexcept;
+    void start_home_lookup() noexcept;
+    peeler::future<bool> locate_home(peel::RefPtr<PositionLookup> lookup, std::string callsign,
+                                     peel::RefPtr<peel::Gio::Cancellable> cancel);
+    void show_distance(Station* station) noexcept;
+    void hide_distance() noexcept;
     /* Looks up station's position and stores it on the station; toasts if
      * there is none. */
     peeler::future<bool> locate_station(peel::RefPtr<PositionLookup> lookup, peel::RefPtr<Station> station,
@@ -77,11 +110,16 @@ namespace mnn
   public:
     PEEL_PROPERTY(peel::Gio::ListModel, model, "model");
     PEEL_PROPERTY(PositionLookup, position_lookup, "position-lookup");
+    PEEL_PROPERTY(const char *, home_callsign, "home-callsign");
 
     peel::RefPtr<peel::Gio::ListModel> get_model() const noexcept { return m.model; }
     void set_model(peel::RefPtr<peel::Gio::ListModel> model) noexcept;
     peel::RefPtr<PositionLookup> get_position_lookup() const noexcept { return m.position_lookup; }
     void set_position_lookup(peel::RefPtr<PositionLookup> lookup) noexcept;
+    const char* get_home_callsign() const noexcept { return m.home.callsign.empty() ? nullptr : m.home.callsign.c_str(); }
+    /* Normalized; an invalid callsign clears home. Looked up after a short
+     * pause, so typing doesn't query every prefix. */
+    void set_home_callsign(const char* callsign) noexcept;
 
   private:
     template<typename F>
@@ -94,6 +132,9 @@ namespace mnn
       f.prop(prop_position_lookup())
         .get(&StationMapView::get_position_lookup)
         .set(&StationMapView::set_position_lookup);
+      f.prop(prop_home_callsign(), nullptr)
+        .get(&StationMapView::get_home_callsign)
+        .set(&StationMapView::set_home_callsign);
     }
   };
 }

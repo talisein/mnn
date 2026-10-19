@@ -48,3 +48,31 @@ flowboxchild:focus {
     color: white;
     background-color: rgba(0, 0, 0, 0.6);
 }
+
+.station-pin-home {
+    color: @blue_3;
+}
+
+.station-pin-home-direct image,
+.station-pin-home-relay image {
+    color: white;
+    padding: 3px;
+    border-radius: 50%;
+}
+
+.station-pin-home-direct image {
+    background-color: @green_4;
+}
+
+.station-pin-home-relay image {
+    background-color: @yellow_3;
+}
+
+.distance-label {
+    font-family: "Monospace";
+    font-weight: bold;
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.7);
+}
