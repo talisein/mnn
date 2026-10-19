@@ -17,6 +17,7 @@
 */
 
 #include "position_lookup.hpp"
+#include "callsign.hpp"
 #include "coordinates.hpp"
 #include "mnn_gerror.hpp"
 #include <algorithm>
@@ -51,33 +52,6 @@ namespace mnn
         };
 
         using CallookResult = std::variant<LatLon, PositionLookup::PostalAddress>;
-
-        constexpr bool is_ascii_space(char c) { return c == ' ' || (c >= '\t' && c <= '\r'); }
-        constexpr bool is_ascii_upper(char c) { return c >= 'A' && c <= 'Z'; }
-        constexpr bool is_ascii_digit(char c) { return c >= '0' && c <= '9'; }
-        constexpr char to_ascii_upper(char c) { return (c >= 'a' && c <= 'z') ? c - 'a' + 'A' : c; }
-
-        /* Trim and upper-case. Accepts 3-10 characters of [A-Z0-9] with at
-         * least one letter and one digit. */
-        std::expected<std::string, error>
-        normalize_callsign(std::string_view raw)
-        {
-            auto call = raw
-                | std::views::drop_while(is_ascii_space)
-                | std::views::reverse
-                | std::views::drop_while(is_ascii_space)
-                | std::views::reverse
-                | std::views::transform(to_ascii_upper)
-                | std::ranges::to<std::string>();
-
-            if (call.size() < 3 || call.size() > 10)
-                return std::unexpected(error::invalid_callsign);
-            if (!std::ranges::all_of(call, [](char c) { return is_ascii_upper(c) || is_ascii_digit(c); }))
-                return std::unexpected(error::invalid_callsign);
-            if (!std::ranges::any_of(call, is_ascii_upper) || !std::ranges::any_of(call, is_ascii_digit))
-                return std::unexpected(error::invalid_callsign);
-            return call;
-        }
 
         /* The json helpers below never throw: an exception escaping a
          * peeler::future coroutine is std::terminate. */

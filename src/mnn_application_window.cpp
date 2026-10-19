@@ -24,9 +24,13 @@
 #include "mnn_station_map_view.hpp"
 #include "mnn_application.hpp"
 #include "station.hpp"
+#include "callsign.hpp"
+#include "util.hpp"
 #include "config.hpp"
 #include <glib/gi18n.h>
 #include <peel/widget-template.h>
+#include <peel/Gdk/Gdk.h>
+#include <cctype>
 #include <format>
 #include <functional>
 #include <ranges>
@@ -47,6 +51,7 @@ namespace mnn
     m.date_entry_popover = nullptr;
 
     m.columns.clear();
+    m.store = nullptr;
 
     dispose_template(Type::of<ApplicationWindow> ());
     parent_vfunc_dispose<ApplicationWindow> ();
@@ -66,6 +71,12 @@ namespace mnn
 
       add_binding_action (GDK_KEY_T, Gdk::ModifierType::CONTROL_MASK, "win.new-tab", nullptr);
     */
+    install_action ("win.add-station", nullptr, [] (Gtk::Widget *widget, const char *, GLib::Variant *)
+    {
+      widget->cast<ApplicationWindow> ()->show_add_station_dialog ();
+    });
+    add_binding_action (GDK_KEY_n, Gdk::ModifierType::CONTROL_MASK, "win.add-station", nullptr);
+
     Type::of<StationMapView>().ensure();
     set_template_from_resource(RESOURCE_BASEPATH "/mnn-app-window.ui");
 
@@ -191,6 +202,7 @@ namespace mnn
       */
     }
     m.map_view->set_model(store);
+    m.store = std::move(store);
     update_grand_total();
   }
 
@@ -200,6 +212,112 @@ namespace mnn
     auto totals = m.columns | std::views::transform([] (const ColumnWatch& c) { return c.column->get_total(); });
     auto sum = std::ranges::fold_left(totals, 0u, std::plus{});
     m.grand_total_label->set_label(std::format("{}", sum).c_str());
+  }
+
+  void
+  ApplicationWindow::show_add_station_dialog()
+  {
+    if (!m.store) return;
+
+    auto dialog = Adw::AlertDialog::create(_("Add Station"), _("A station that isn't on the roster, as it was heard."));
+    dialog->add_response("cancel", _("_Cancel"));
+    dialog->add_response("relay", _("_Relay"));
+    dialog->add_response("direct", _("_Direct"));
+    dialog->set_response_appearance("direct", Adw::ResponseAppearance::SUGGESTED);
+    dialog->set_response_enabled("relay", false);
+    dialog->set_response_enabled("direct", false);
+    dialog->set_default_response("direct");
+    dialog->set_close_response("cancel");
+
+    auto callsign_row = Adw::EntryRow::create();
+    callsign_row->set_title(_("Callsign"));
+    callsign_row->set_input_hints(Gtk::InputHints::UPPERCASE_CHARS | Gtk::InputHints::NO_SPELLCHECK);
+    callsign_row->set_activates_default(true);
+    auto name_row = Adw::EntryRow::create();
+    name_row->set_title(_("Name"));
+    name_row->set_input_purpose(Gtk::InputPurpose::NAME);
+    name_row->set_activates_default(true);
+
+    // Owned by the dialog, which outlives every handler below.
+    Adw::AlertDialog* dlg = dialog;
+    Adw::EntryRow* callsign = callsign_row;
+    Adw::EntryRow* name = name_row;
+
+    callsign_row->cast<Gtk::Editable>()->connect_changed([this, dlg] (Gtk::Editable* editable) {
+      auto raw = to_sview(editable->get_text());
+      auto problem = raw.empty() ? std::string{} : check_new_callsign(raw);
+      bool ok = !raw.empty() && problem.empty();
+      dlg->set_response_enabled("relay", ok);
+      dlg->set_response_enabled("direct", ok);
+      if (problem.empty()) {
+        editable->cast<Gtk::Widget>()->remove_css_class("error");
+        dlg->set_body(_("A station that isn't on the roster, as it was heard."));
+      } else {
+        editable->cast<Gtk::Widget>()->add_css_class("error");
+        dlg->set_body(problem.c_str());
+      }
+    });
+    dialog->connect_response([this, callsign, name] (Adw::AlertDialog*, const char* response) {
+      auto heard = to_sview(response);
+      if (heard != "direct" && heard != "relay")
+        return;
+      auto call = normalize_callsign(to_sview(callsign->cast<Gtk::Editable>()->get_text()));
+      if (call && check_new_callsign(*call).empty())
+        add_station(*call, to_sview(name->cast<Gtk::Editable>()->get_text()),
+                    heard == "direct" ? StationStatus::HEARD_DIRECT : StationStatus::HEARD_RELAY);
+    });
+
+    auto list = Gtk::ListBox::create();
+    list->set_selection_mode(Gtk::SelectionMode::NONE);
+    list->add_css_class("boxed-list");
+    list->append(callsign_row);
+    list->append(name_row);
+    dialog->set_extra_child(list);
+
+    dialog->present(this);
+    callsign->grab_focus();
+  }
+
+  std::string
+  ApplicationWindow::check_new_callsign(std::string_view raw) const
+  {
+    auto call = normalize_callsign(raw);
+    if (!call)
+      return _("Not a valid callsign.");
+    // Columns sort by the letters after the digit, so there must be some.
+    if (!std::isalpha(static_cast<unsigned char>(call->back())))
+      return _("A callsign ends with a letter.");
+    auto n = m.store->get_n_items();
+    for (unsigned i = 0; i < n; ++i) {
+      RefPtr<Object> item = m.store->get_object(i);
+      if (item->cast<Station>()->get_callsign() == *call)
+        return std::vformat(_("{} is already on the roster."), std::make_format_args(*call));
+    }
+    return {};
+  }
+
+  void
+  ApplicationWindow::add_station(std::string_view callsign, std::string_view name, StationStatus heard)
+  {
+    std::string call { callsign };
+    std::string nm { name };
+    RefPtr<Station> station = Object::create<Station>(Station::prop_callsign(), call.c_str(),
+                                                      Station::prop_name(), nm.empty() ? nullptr : nm.c_str(),
+                                                      Station::prop_status(), heard);
+
+    // Keep the roster in suffix order, as the net definition lists it.
+    std::string suffix { to_sview(station->get_suffix_cstr()) };
+    auto n = m.store->get_n_items();
+    unsigned pos = 0;
+    for (; pos < n; ++pos) {
+      RefPtr<Object> item = m.store->get_object(pos);
+      if (to_sview(item->cast<Station>()->get_suffix_cstr()) > suffix)
+        break;
+    }
+    m.store->insert(pos, station);
+
+    auto text = std::vformat(_("Added {}"), std::make_format_args(call));
+    m.toast_overlay->add_toast(Adw::Toast::create(text.c_str()));
   }
 
   ApplicationWindow*

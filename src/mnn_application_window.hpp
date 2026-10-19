@@ -23,6 +23,8 @@
 #include <peel/Gtk/Gtk.h>
 #include <peel/class.h>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <string_view>
 #include <vector>
 #include "mnn_station_column_view.hpp"
 #include "mnn_station_map_view.hpp"
@@ -54,11 +56,16 @@ namespace mnn
             StationMapView* map_view;
             peel::Adw::ToastOverlay* toast_overlay;
             peel::Gtk::Label* grand_total_label;
+            peel::RefPtr<peel::Gio::ListStore> store;
             std::vector<ColumnWatch> columns;
         } m;
 
         void setup_net(const nlohmann::json&);
         void update_grand_total() noexcept;
+        void show_add_station_dialog();
+        /* Why callsign can't be added, or empty if it can. callsign is normalized. */
+        std::string check_new_callsign(std::string_view raw) const;
+        void add_station(std::string_view callsign, std::string_view name, StationStatus heard);
         void on_calendar_day_selected(peel::Gtk::Calendar*);
         void on_date_entry_icon_pressed(peel::Gtk::Entry*, peel::Gtk::Entry::IconPosition);
     protected:
