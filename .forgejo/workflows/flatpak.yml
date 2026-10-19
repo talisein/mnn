@@ -72,6 +72,9 @@ jobs:
           # --default-branch=stable: the ref the token is scoped to (gentoken's
           # default --branch) and the Branch= in monday-night-net.flatpakref.
           # --disable-rofiles-fuse: no FUSE in a nested container.
+          # No --install-deps-from: the SDK image already carries the GNOME 50
+          # SDK and Platform, and letting flatpak update them in place fails
+          # with "Invalid cross-device link" on the nested overlay storage.
           # The manifest's run-tests runs `meson test` after the build.
           #
           # The runner injects DOCKER_HOST (meiko's own podman) into every job
@@ -82,7 +85,7 @@ jobs:
           podman run --rm --privileged --network host \
             -v "$PWD":/src -w /src "$SDK_IMAGE" \
             flatpak-builder --disable-rofiles-fuse --force-clean \
-              --default-branch=stable --install-deps-from=flathub \
+              --default-branch=stable \
               --repo=repo build-dir "$MANIFEST"
           podman run --rm -v "$PWD":/src -w /src "$SDK_IMAGE" ostree --repo=repo refs
 
