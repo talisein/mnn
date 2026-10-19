@@ -152,4 +152,45 @@ int main() {
 
 
     };
+
+    "json round trip"_test = [] {
+        auto heard = R"(
+{ "callsign": "KI6KVZ",
+  "name": "Andrew",
+  "assistant_emergency_coordinator": true,
+  "status": "direct",
+  "acknowledged": true,
+  "lat": 37.403684,
+  "long": -122.06438,
+  "precision": "precise"
+}
+)"_json;
+        auto p = mnn::Station::create(heard);
+        expect(mnn::StationStatus::HEARD_DIRECT == p->get_status());
+        expect(eq(true, p->is_acknowledged()));
+        expect(heard == p->to_json());
+
+        auto pending = R"({ "callsign": "W1AW", "name": "ARRL", "status": "pending", "acknowledged": false })"_json;
+        auto q = mnn::Station::create(pending);
+        expect(mnn::StationStatus::PENDING == q->get_status());
+        expect(pending == q->to_json());
+        expect(eq(false, q->to_json().contains("lat")));
+
+        auto relay = mnn::Station::create(R"({ "callsign": "W1AW", "name": "ARRL", "status": "relay" })"_json);
+        expect(mnn::StationStatus::HEARD_RELAY == relay->get_status());
+
+        expect(throws<std::system_error>([] {
+            auto p = mnn::Station::create(R"({ "callsign": "W1AW", "name": "ARRL", "status": "loud" })"_json);
+        }));
+
+        auto approx = R"({ "callsign": "K6FSH", "name": "Fish", "status": "relay", "acknowledged": false,
+                           "lat": 37.38, "long": -122.08, "precision": "approximate" })"_json;
+        auto a = mnn::Station::create(approx);
+        expect(mnn::Precision::approximate == a->get_precision());
+        expect(approx == a->to_json());
+
+        expect(throws<std::system_error>([] {
+            auto p = mnn::Station::create(R"({ "callsign": "W1AW", "name": "ARRL", "precision": "vague" })"_json);
+        }));
+    };
 }

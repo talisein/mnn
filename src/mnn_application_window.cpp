@@ -76,6 +76,16 @@ namespace mnn
       widget->cast<ApplicationWindow> ()->show_add_station_dialog ();
     });
     add_binding_action (GDK_KEY_n, Gdk::ModifierType::CONTROL_MASK, "win.add-station", nullptr);
+    install_action ("win.save-net", nullptr, [] (Gtk::Widget *widget, const char *, GLib::Variant *)
+    {
+      widget->cast<ApplicationWindow> ()->save_net ();
+    });
+    add_binding_action (GDK_KEY_s, Gdk::ModifierType::CONTROL_MASK, "win.save-net", nullptr);
+    install_action ("win.open-net", nullptr, [] (Gtk::Widget *widget, const char *, GLib::Variant *)
+    {
+      widget->cast<ApplicationWindow> ()->open_net ();
+    });
+    add_binding_action (GDK_KEY_o, Gdk::ModifierType::CONTROL_MASK, "win.open-net", nullptr);
 
     Type::of<StationMapView>().ensure();
     set_template_from_resource(RESOURCE_BASEPATH "/mnn-app-window.ui");
@@ -145,18 +155,40 @@ namespace mnn
       m.toast_overlay->add_toast(toast);
       return;
     }
-    auto valid_col = [](const auto& j) { return j.contains("begin") && j.contains("end"); };
-    auto col_view = std::views::filter(j["columns"], valid_col);
-    if (0UZ == std::ranges::distance(col_view)) {
-      auto toast = Adw::Toast::create(_("Invalid Net Definition provided: No valid columns (need begin and end)"));
-      m.toast_overlay->add_toast(toast);
-      return;
+    build_net(j["columns"], j.value("stations", nlohmann::json::array()));
+  }
+
+  bool
+  ApplicationWindow::build_net(const nlohmann::json& columns, const nlohmann::json& stations)
+  {
+    auto valid_bound = [](const nlohmann::json& b) { return b.is_string() && !b.get_ref<const std::string&>().empty(); };
+    auto valid_col = [valid_bound](const nlohmann::json& j) {
+      return j.is_object() && j.contains("begin") && j.contains("end") && valid_bound(j["begin"]) && valid_bound(j["end"]);
+    };
+    if (!columns.is_array() || 0 == std::ranges::count_if(columns, valid_col)) {
+      toast(_("Invalid Net Definition provided: No valid columns (need begin and end)"));
+      return false;
     }
+    auto col_view = std::views::filter(columns, valid_col);
+
+    // Build every station before touching the current net, so a bad record leaves it as it was.
     auto store = Gio::ListStore::create(Type::of<Station>());
-    for (const auto& s : j["stations"]) {
-      auto station = Station::create(s);
-      store->append(station);
+    try {
+      if (!stations.is_array())
+        throw std::invalid_argument(_("'stations' is not a list"));
+      for (const auto& s : stations) {
+        auto station = Station::create(s);
+        store->append(station);
+      }
+    } catch (const std::exception& e) {
+      std::string what { e.what() };
+      toast(std::vformat(_("Invalid Net Definition provided: {}"), std::make_format_args(what)).c_str());
+      return false;
     }
+
+    m.columns.clear();
+    m.columns_flowbox->remove_all();
+    m.column_defs = columns;
 
     auto callsign_factory = CallsignListViewCell::make_factory();
     auto button_factory = ButtonListViewCell::make_factory();
@@ -204,6 +236,145 @@ namespace mnn
     m.map_view->set_model(store);
     m.store = std::move(store);
     update_grand_total();
+    return true;
+  }
+
+  void
+  ApplicationWindow::toast(const char* text)
+  {
+    m.toast_overlay->add_toast(Adw::Toast::create(text));
+  }
+
+  nlohmann::json
+  ApplicationWindow::net_to_json() const
+  {
+    auto stations = nlohmann::json::array();
+    auto n = m.store ? m.store->get_n_items() : 0u;
+    for (unsigned i = 0; i < n; ++i) {
+      RefPtr<Object> item = m.store->get_object(i);
+      stations.push_back(item->cast<Station>()->to_json());
+    }
+    return {
+      {"version", 1},
+      {"date", std::string { to_sview(m.date_entry->get_buffer()->get_text()) }},
+      {"frequency", std::string { to_sview(m.frequency_entry->get_buffer()->get_text()) }},
+      {"ss_callsign", std::string { to_sview(m.callsign_entry_buffer->get_text()) }},
+      {"ss_name", std::string { to_sview(m.name_entry_buffer->get_text()) }},
+      {"columns", m.column_defs},
+      {"stations", std::move(stations)},
+    };
+  }
+
+  namespace
+  {
+    RefPtr<Gtk::FileDialog>
+    make_net_file_dialog(const char* title)
+    {
+      auto filter = Gtk::FileFilter::create();
+      filter->set_name(_("Net files (JSON)"));
+      filter->add_suffix("json");
+      auto filters = Gio::ListStore::create(Type::of<Gtk::FileFilter>());
+      filters->append(filter);
+
+      auto dialog = Gtk::FileDialog::create();
+      dialog->set_title(title);
+      dialog->set_filters(filters);
+      dialog->set_default_filter(filter);
+      return dialog;
+    }
+
+    bool
+    is_dismissed(const UniquePtr<GLib::Error>& error)
+    {
+      return error->domain == GTK_DIALOG_ERROR && error->code == GTK_DIALOG_ERROR_DISMISSED;
+    }
+  }
+
+  void
+  ApplicationWindow::save_net()
+  {
+    if (!m.store) return;
+
+    auto dialog = make_net_file_dialog(_("Save Net"));
+    auto date = std::string { to_sview(m.date_entry->get_buffer()->get_text()) };
+    auto initial = date.empty() ? "net.json"s : std::format("net-{}.json", date);
+    dialog->set_initial_name(initial.c_str());
+
+    RefPtr<ApplicationWindow> self { this };
+    dialog->save(this, nullptr, [self, dialog] (GObject::Object*, Gio::AsyncResult* res) {
+      UniquePtr<GLib::Error> error;
+      RefPtr<Gio::File> file = dialog->save_finish(res, &error);
+      if (!file) {
+        if (error && !is_dismissed(error))
+          self->toast(error->message);
+        return;
+      }
+
+      auto text = self->net_to_json().dump(2) + "\n";
+      ArrayRef<const uint8_t> contents { reinterpret_cast<const uint8_t*>(text.data()), text.size() };
+      if (!file->replace_contents(contents, nullptr, false, Gio::File::CreateFlags::NONE, nullptr, nullptr, &error)) {
+        self->toast(error->message);
+        return;
+      }
+      auto name = std::string { to_sview(file->get_basename()) };
+      self->toast(std::vformat(_("Saved to {}"), std::make_format_args(name)).c_str());
+    });
+  }
+
+  void
+  ApplicationWindow::open_net()
+  {
+    auto dialog = make_net_file_dialog(_("Open Net"));
+    RefPtr<ApplicationWindow> self { this };
+    dialog->open(this, nullptr, [self, dialog] (GObject::Object*, Gio::AsyncResult* res) {
+      UniquePtr<GLib::Error> error;
+      RefPtr<Gio::File> file = dialog->open_finish(res, &error);
+      if (!file) {
+        if (error && !is_dismissed(error))
+          self->toast(error->message);
+        return;
+      }
+      self->load_net(file);
+    });
+  }
+
+  void
+  ApplicationWindow::load_net(Gio::File* file)
+  {
+    UniquePtr<uint8_t[]> contents;
+    UniquePtr<GLib::Error> error;
+    if (!file->load_contents(nullptr, &contents, nullptr, &error)) {
+      toast(error->message);
+      return;
+    }
+
+    auto name = std::string { to_sview(file->get_basename()) };
+    auto json = nlohmann::json::parse(contents.data(), contents.data() + contents.size(), nullptr, false);
+    if (json.is_discarded() || !json.is_object()) {
+      toast(std::vformat(_("{} is not a valid JSON file"), std::make_format_args(name)).c_str());
+      return;
+    }
+    if (!json.contains("version") || 1 != json["version"]) {
+      toast(std::vformat(_("{} is not a saved net, or is from a newer version"), std::make_format_args(name)).c_str());
+      return;
+    }
+    if (!json.contains("columns")) {
+      toast(_("Invalid Net Definition provided: No columns defined"));
+      return;
+    }
+    if (!build_net(json["columns"], json.value("stations", nlohmann::json::array())))
+      return;
+
+    auto text = [&json] (const char* key) {
+      auto it = json.find(key);
+      return it != json.end() && it->is_string() ? it->get<std::string>() : std::string {};
+    };
+    m.date_entry->get_buffer()->set_text(text("date").c_str(), -1);
+    m.frequency_entry->get_buffer()->set_text(text("frequency").c_str(), -1);
+    m.callsign_entry_buffer->set_text(text("ss_callsign").c_str(), -1);
+    m.name_entry_buffer->set_text(text("ss_name").c_str(), -1);
+
+    toast(std::vformat(_("Loaded {}"), std::make_format_args(name)).c_str());
   }
 
   void

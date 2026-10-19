@@ -119,9 +119,9 @@ namespace mnn
       .station        = station,
       .status_conn    = station->connect_notify(Station::prop_status(), changed()),
       .location_conn  = station->connect_notify(Station::prop_has_location(), changed()),
+      .precision_conn = station->connect_notify(Station::prop_precision(), changed()),
       .marker         = nullptr,
       .pin            = nullptr,
-      .precision      = Precision::precise, // the net definition's coordinates
       .cancel         = Gio::Cancellable::create(),
       .lookup_started = false,
     };
@@ -135,6 +135,7 @@ namespace mnn
     watch.cancel->cancel();
     watch.status_conn.disconnect();
     watch.location_conn.disconnect();
+    watch.precision_conn.disconnect();
     if (watch.marker) {
       if (m.marker_layer)
         m.marker_layer->remove_marker(watch.marker);
@@ -187,8 +188,7 @@ namespace mnn
       m.toast_overlay->add_toast(Adw::Toast::create(text.c_str()));
       co_return false;
     }
-    if (auto *watch = find_watch(station))
-      watch->precision = pos->precision;
+    station->set_precision(pos->precision);
     // The has-location notify places the pin through update_station.
     auto *location = pos->coordinate->cast<Shumate::Location>();
     station->set_location(location->get_latitude(), location->get_longitude());
@@ -235,7 +235,7 @@ namespace mnn
 
     watch.marker->cast<Shumate::Location>()->set_location(watch.station->get_latitude(),
                                                           watch.station->get_longitude());
-    if (Precision::approximate == watch.precision) {
+    if (Precision::approximate == watch.station->get_precision()) {
       // A "?" for a ZIP code centroid, anchored at its center.
       watch.pin->set_from_icon_name("dialog-question-symbolic");
       watch.marker->set_hotspot(-1, pin_size / 2.0);

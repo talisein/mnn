@@ -44,9 +44,9 @@ namespace mnn
       peel::RefPtr<Station> station;
       peel::SignalConnection status_conn;
       peel::SignalConnection location_conn;
+      peel::SignalConnection precision_conn;
       peel::RefPtr<peel::Shumate::Marker> marker; // null while no pin is shown
       peel::Gtk::Image* pin;                      // owned by marker
-      Precision precision;                        // of the station's location
       peel::RefPtr<peel::Gio::Cancellable> cancel;
       bool lookup_started;
     };

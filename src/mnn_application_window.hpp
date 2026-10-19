@@ -58,9 +58,18 @@ namespace mnn
             peel::Gtk::Label* grand_total_label;
             peel::RefPtr<peel::Gio::ListStore> store;
             std::vector<ColumnWatch> columns;
+            nlohmann::json column_defs; // the "columns" the net was built from
         } m;
 
         void setup_net(const nlohmann::json&);
+        /* Replaces the current net. Leaves it untouched and toasts if columns
+         * or stations are invalid. */
+        bool build_net(const nlohmann::json& columns, const nlohmann::json& stations);
+        void toast(const char* text);
+        nlohmann::json net_to_json() const;
+        void save_net();
+        void open_net();
+        void load_net(peel::Gio::File* file);
         void update_grand_total() noexcept;
         void show_add_station_dialog();
         /* Why callsign can't be added, or empty if it can. callsign is normalized. */

@@ -7,7 +7,22 @@
     <property name="content">
       <object class="AdwToolbarView">
         <child type="top">
-          <object class="AdwHeaderBar"/>
+          <object class="AdwHeaderBar">
+            <child type="start">
+              <object class="GtkButton">
+                <property name="icon-name">document-open-symbolic</property>
+                <property name="action-name">win.open-net</property>
+                <property name="tooltip-text" translatable="yes">Open Net (Ctrl+O)</property>
+              </object>
+            </child>
+            <child type="start">
+              <object class="GtkButton">
+                <property name="icon-name">document-save-symbolic</property>
+                <property name="action-name">win.save-net</property>
+                <property name="tooltip-text" translatable="yes">Save Net (Ctrl+S)</property>
+              </object>
+            </child>
+          </object>
         </child>
         <property name="content">
           <object class="AdwToastOverlay" id="toast-overlay">

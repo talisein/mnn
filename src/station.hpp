@@ -28,6 +28,7 @@
 #include <peel/GLib/GLib.h>
 #include <peel/Shumate/Location.h>
 #include <nlohmann/json.hpp>
+#include "position.hpp"
 
 namespace mnn
 {
@@ -65,6 +66,7 @@ namespace mnn
       bool is_acknowledged;
       StationStatus status;
       std::optional<Location> location;
+      Precision precision = Precision::precise; // of location
     } m;
 
   public:
@@ -76,6 +78,7 @@ namespace mnn
     PEEL_PROPERTY(bool, is_assistant_emergency_coordinator, "is-assistant-emergency-coordinator");
     PEEL_PROPERTY(StationStatus, status, "status");
     PEEL_PROPERTY(bool, has_location, "has-location");
+    PEEL_PROPERTY(Precision, precision, "precision");
 
     void set_name(std::string_view str);
     std::string get_name() const;
@@ -86,6 +89,8 @@ namespace mnn
     bool is_acknowledged() const;
     void set_is_acknowledged(bool);
     bool has_location() const;
+    Precision get_precision() const;
+    void set_precision(Precision);
     StationStatus get_status() const;
     void set_status(StationStatus status);
 
@@ -97,6 +102,8 @@ namespace mnn
     void set_callsign_cstr(const char* str);
 
     static peel::RefPtr<Station> create(const nlohmann::json&);
+    /* The station as a saved net's "stations" entry; create() reads it back. */
+    nlohmann::json to_json() const;
 
   private:
     double vfunc_get_latitude() const noexcept;
@@ -126,6 +133,9 @@ namespace mnn
         .set(&Station::set_is_assistant_emergency_coordinator);
       f.prop(prop_has_location(), false)
         .get(&Station::has_location);
+      f.prop(prop_precision(), Precision::precise)
+        .get(&Station::get_precision)
+        .set(&Station::set_precision);
       f.prop(prop_status(), StationStatus::PENDING)
         .get(&Station::get_status)
         .set(&Station::set_status);

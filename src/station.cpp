@@ -209,6 +209,22 @@ namespace mnn
     return m.location.has_value();
   }
 
+  Precision
+  Station::get_precision() const
+  {
+    return m.precision;
+  }
+
+  void
+  Station::set_precision(Precision precision)
+  {
+    if (precision == m.precision) {
+      return; // No change
+    }
+    m.precision = precision;
+    notify(prop_precision());
+  }
+
   const char*
   Station::get_name_cstr()
   {
@@ -296,11 +312,61 @@ namespace mnn
     auto res = Object::create<mnn::Station>(mnn::Station::prop_name(), name.c_str(),
                                             mnn::Station::prop_callsign(), callsign.c_str(),
                                             mnn::Station::prop_is_assistant_emergency_coordinator(), is_aem);
+    if (j.contains("status")) {
+      auto status = j["status"].get<std::string>();
+      if (status == "pending") {
+        res->set_status(StationStatus::PENDING);
+      } else if (status == "direct") {
+        res->set_status(StationStatus::HEARD_DIRECT);
+      } else if (status == "relay") {
+        res->set_status(StationStatus::HEARD_RELAY);
+      } else {
+        throw std::system_error(make_error_code(mnn::error::invalid_status), std::format("Station record has unknown 'status': {}", j.dump()));
+      }
+    }
+    // After status: acknowledging a pending station marks it heard via relay.
+    if (j.contains("acknowledged")) {
+      res->set_is_acknowledged(j["acknowledged"].get<bool>());
+    }
+    if (j.contains("precision")) {
+      auto precision = j["precision"].get<std::string>();
+      if (precision == "precise") {
+        res->set_precision(Precision::precise);
+      } else if (precision == "approximate") {
+        res->set_precision(Precision::approximate);
+      } else {
+        throw std::system_error(make_error_code(mnn::error::invalid_precision), std::format("Station record has unknown 'precision': {}", j.dump()));
+      }
+    }
     if (j.contains("lat") && j.contains("long"))
     {
       res->set_location(j["lat"].get<double>(), j["long"].get<double>());
     }
     return res;
+  }
+
+  nlohmann::json
+  Station::to_json() const
+  {
+    nlohmann::json j = {
+      {"callsign", m.callsign},
+      {"name", m.name},
+    };
+    if (m.is_assistant_emergency_coordinator) {
+      j["assistant_emergency_coordinator"] = true;
+    }
+    switch (m.status) {
+      case StationStatus::PENDING:      j["status"] = "pending"; break;
+      case StationStatus::HEARD_DIRECT: j["status"] = "direct"; break;
+      case StationStatus::HEARD_RELAY:  j["status"] = "relay"; break;
+    }
+    j["acknowledged"] = m.is_acknowledged;
+    if (m.location) {
+      j["lat"] = m.location->latitude;
+      j["long"] = m.location->longitude;
+      j["precision"] = Precision::approximate == m.precision ? "approximate" : "precise";
+    }
+    return j;
   }
 
 } // namespace mnn

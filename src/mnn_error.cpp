@@ -52,6 +52,10 @@ namespace mnn
                 return "Database error"s;
             case error::cancelled:
                 return "Operation cancelled"s;
+            case error::invalid_status:
+                return "Invalid status in JSON station record"s;
+            case error::invalid_precision:
+                return "Invalid precision in JSON station record"s;
         }
         return std::format("Unknown Monday Night Net error code {}", ev);
     }

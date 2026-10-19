@@ -36,6 +36,8 @@ namespace mnn
         network_error = 7,
         database_error = 8,
         cancelled = 9,
+        invalid_status = 10,
+        invalid_precision = 11,
     };
 
     class error_category : public std::error_category {
