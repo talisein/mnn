@@ -23,11 +23,19 @@
 
 namespace mnn
 {
+    /* Explicit values: CallsignMiss persists these in the database. */
     enum class error : int
     {
-        missing_name,
-        missing_callsign,
-        invalid_callsign,
+        missing_name = 0,
+        missing_callsign = 1,
+        invalid_callsign = 2,
+        callsign_not_found = 3,
+        lookup_unavailable = 4,
+        no_coordinates = 5,
+        bad_response = 6,
+        network_error = 7,
+        database_error = 8,
+        cancelled = 9,
     };
 
     class error_category : public std::error_category {
@@ -38,10 +46,13 @@ namespace mnn
 
     const std::error_category& get_error_category() noexcept;
 
+    /* In mnn, not std, so std::error_code's converting constructor finds it
+     * by ADL. */
+    std::error_code make_error_code(error e) noexcept;
+
 } // namespace mnn
 
 namespace std {
     template <>
     struct is_error_code_enum<mnn::error> : public true_type {};
-    std::error_code make_error_code(mnn::error e) noexcept;
 }

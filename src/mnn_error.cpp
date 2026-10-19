@@ -37,7 +37,21 @@ namespace mnn
             case error::missing_callsign:
                 return "Missing callsign in JSON station record"s;
             case error::invalid_callsign:
-                return "Invalid callsign in JSON station record"s;
+                return "Invalid callsign"s;
+            case error::callsign_not_found:
+                return "Callsign not found by callook.info"s;
+            case error::lookup_unavailable:
+                return "Callsign lookup service unavailable"s;
+            case error::no_coordinates:
+                return "No coordinates known for callsign"s;
+            case error::bad_response:
+                return "Unexpected response from callsign lookup service"s;
+            case error::network_error:
+                return "Network error during callsign lookup"s;
+            case error::database_error:
+                return "Database error"s;
+            case error::cancelled:
+                return "Operation cancelled"s;
         }
         return std::format("Unknown Monday Night Net error code {}", ev);
     }
@@ -49,14 +63,10 @@ namespace mnn
         return instance;
     }
 
-} // namespace mnn
-
-namespace std
-{
     std::error_code
-    make_error_code(mnn::error e) noexcept
+    make_error_code(error e) noexcept
     {
-        return { std::to_underlying(e), mnn::get_error_category() };
+        return { std::to_underlying(e), get_error_category() };
     }
 
-} // namespace std
+} // namespace mnn

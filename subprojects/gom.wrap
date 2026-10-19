@@ -1,0 +1,10 @@
+[wrap-git]
+directory=gom
+url=https://gitlab.gnome.org/GNOME/gom.git
+revision=main
+depth=1
+diff_files=gom-gir-annotations.diff,gom-leak-fixes.diff,gom-uninit-fix.diff
+
+[provide]
+dependency_names=libgom-2
+libgom-2=libgom_dep

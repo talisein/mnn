@@ -21,6 +21,7 @@
 #include <peel/Gtk/Gtk.h>
 #include <peel/class.h>
 #include "station.hpp"
+#include "list_property_watcher.hpp"
 
 namespace mnn
 {
@@ -35,15 +36,19 @@ namespace mnn
       peel::RefPtr<peel::Gtk::CustomFilter> filter;
       peel::RefPtr<peel::Gtk::ListItemFactory> callsign_factory;
       peel::RefPtr<peel::Gtk::ListItemFactory> button_factory;
+      peel::RefPtr<ListPropertyWatcher> ack_watcher;
       peel::Gtk::ColumnView* view;
+      peel::Gtk::FilterListModel* filter_model;
       peel::Gtk::Label* total_label;
       int filter_begin;
       int filter_end;
+      unsigned total;
     } m;
 
     void vfunc_dispose();
 
     bool filter_suffix(peel::Object*) const noexcept;
+    void update_total(ListPropertyWatcher*) noexcept;
 
   public:
     PEEL_PROPERTY(peel::Gio::ListModel, model, "model");
@@ -52,12 +57,14 @@ namespace mnn
     PEEL_PROPERTY(peel::Gtk::ListItemFactory, button_factory, "button-factory");
     PEEL_PROPERTY(unsigned char, filter_begin, "filter-begin");
     PEEL_PROPERTY(unsigned char, filter_end, "filter-end");
+    PEEL_PROPERTY(unsigned, total, "total");
 
     peel::RefPtr<peel::Gio::ListModel> get_model() const noexcept { return m.model; };
     void set_model(peel::RefPtr<peel::Gio::ListModel> model) noexcept { m.model = std::move(model); notify(prop_model()); };
     peel::RefPtr<peel::Gtk::CustomFilter> get_filter() const noexcept { return m.filter; };
     peel::RefPtr<peel::Gtk::ListItemFactory> get_callsign_factory() const noexcept { return m.callsign_factory; };
     peel::RefPtr<peel::Gtk::ListItemFactory> get_button_factory() const noexcept { return m.button_factory; };
+    unsigned get_total() const noexcept { return m.total; };
 
     char get_filter_begin() const noexcept;
     void set_filter_begin(char b) noexcept;
@@ -87,6 +94,8 @@ namespace mnn
       f.prop(prop_filter_end(), 'A', 'z', 'Z')
         .get(&StationColumnView::get_filter_end)
         .set(&StationColumnView::set_filter_end);
+      f.prop(prop_total(), 0, G_MAXUINT, 0)
+        .get(&StationColumnView::get_total);
     }
   };
 }

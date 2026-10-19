@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="MNNStationMapView">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="AdwToastOverlay" id="toast-overlay">
+        <child>
+          <object class="ShumateSimpleMap" id="map">
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

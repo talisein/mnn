@@ -1,0 +1,104 @@
+diff --git a/lib/gom-entity.c b/lib/gom-entity.c
+index 02a6113..49cce43 100644
+--- a/lib/gom-entity.c
++++ b/lib/gom-entity.c
+@@ -1187,6 +1187,13 @@ _gom_entity_class_get_relationship (GomEntityClass *klass,
+   return relationship;
+ }
+ 
++/**
++ * gom_entity_class_set_identity_fields:
++ * @klass: a [class@Gom.EntityClass]
++ * @identity_fields: (array zero-terminated=1): the identity field names
++ *
++ * Sets the identity fields used to key entities of @klass.
++ */
+ void
+ gom_entity_class_set_identity_fields (GomEntityClass     *klass,
+                                       const char * const *identity_fields)
+@@ -3169,6 +3176,17 @@ gom_entity_validate_mutation_setup (GomEntity           *self,
+   return NULL;
+ }
+ 
++/**
++ * GomEntityClass::backfill_identity:
++ * @self: a [class@Gom.Entity]
++ * @identity_fields: (array zero-terminated=1): the identity field names to backfill
++ * @record: a [class@Gom.Record] providing the backfilled values
++ * @error: return location for a [type@GLib.Error]
++ *
++ * Backfills the identity fields of @self from @record.
++ *
++ * Returns: %TRUE on success; otherwise %FALSE and @error is set.
++ */
+ static gboolean
+ gom_entity_real_backfill_identity (GomEntity           *self,
+                                    const char * const  *identity_fields,
+diff --git a/lib/gom-meta.c b/lib/gom-meta.c
+index c43c7a8..a2e4eed 100644
+--- a/lib/gom-meta.c
++++ b/lib/gom-meta.c
+@@ -1333,6 +1333,16 @@ gom_registry_snapshot (GomRegistry *registry,
+   return g_steal_pointer (&snapshot);
+ }
+ 
++/**
++ * gom_registry_list_entities:
++ * @registry: a [class@Gom.Registry]
++ * @n_entities: (out): the number of entities returned
++ *
++ * Lists the entity specs registered with @registry.
++ *
++ * Returns: (transfer none) (array length=n_entities) (element-type Gom.EntitySpec):
++ *   an array of [class@Gom.EntitySpec].
++ */
+ const GomEntitySpec * const *
+ gom_registry_list_entities (GomRegistry *registry,
+                             guint       *n_entities)
+@@ -1440,6 +1450,16 @@ gom_entity_spec_get_version_removed (GomEntitySpec *self)
+   return self->version_removed;
+ }
+ 
++/**
++ * gom_entity_spec_list_properties:
++ * @self: a [class@Gom.EntitySpec]
++ * @n_properties: (out): the number of properties returned
++ *
++ * Lists the property specs defined on @self.
++ *
++ * Returns: (transfer none) (array length=n_properties) (element-type Gom.PropertySpec):
++ *   an array of [class@Gom.PropertySpec].
++ */
+ const GomPropertySpec * const *
+ gom_entity_spec_list_properties (GomEntitySpec *self,
+                                  guint         *n_properties)
+@@ -1451,6 +1471,16 @@ gom_entity_spec_list_properties (GomEntitySpec *self,
+   return (const GomPropertySpec * const *)self->properties->pdata;
+ }
+ 
++/**
++ * gom_entity_spec_list_indexes:
++ * @self: a [class@Gom.EntitySpec]
++ * @n_indexes: (out): the number of indexes returned
++ *
++ * Lists the index specs defined on @self.
++ *
++ * Returns: (transfer none) (array length=n_indexes) (element-type Gom.IndexSpec):
++ *   an array of [class@Gom.IndexSpec].
++ */
+ const GomIndexSpec * const *
+ gom_entity_spec_list_indexes (GomEntitySpec *self,
+                               guint         *n_indexes)
+diff --git a/lib/gom-vector.c b/lib/gom-vector.c
+index 83e165f..b778251 100644
+--- a/lib/gom-vector.c
++++ b/lib/gom-vector.c
+@@ -313,7 +313,7 @@ gom_vector_read_float32_le (const guint8 *data,
+  * @left: a [struct@Gom.Vector]
+  * @right: a [struct@Gom.Vector]
+  * @metric: the metric to use
+- * @distance: return location for the distance
++ * @distance: (out): return location for the distance
+  * @error: return location for a [type@GLib.Error]
+  *
+  * Computes a distance or similarity score between two vectors in-process.

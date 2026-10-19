@@ -284,10 +284,10 @@ namespace mnn
   Station::create(const nlohmann::json& j)
   {
     if (!j.contains("name")) {
-      throw std::system_error(std::make_error_code(mnn::error::missing_name), std::format("Station record missing 'name' field: {}", j.dump()));
+      throw std::system_error(make_error_code(mnn::error::missing_name), std::format("Station record missing 'name' field: {}", j.dump()));
     }
     if (!j.contains("callsign")) {
-      throw std::system_error(std::make_error_code(mnn::error::missing_callsign), std::format("Station record missing 'callsign' field: {}", j.dump()));
+      throw std::system_error(make_error_code(mnn::error::missing_callsign), std::format("Station record missing 'callsign' field: {}", j.dump()));
     }
 
     auto name = j["name"].get<std::string>();

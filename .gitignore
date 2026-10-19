@@ -1,0 +1,19 @@
+# Meson build directories
+/build/
+/build-*/
+
+# Wrap-downloaded subproject sources (keep the .wrap files + packagefiles)
+/subprojects/*/
+!/subprojects/packagefiles/
+/subprojects/packagecache/
+/subprojects/.wraplock
+
+# clangd index
+/.cache/
+
+# Local agent / editor state
+/.claude/
+/prompts/
+
+# Emacs lock files
+.#*

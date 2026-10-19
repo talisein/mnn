@@ -84,8 +84,48 @@
                   </object><!-- top row box -->
                 </child>
                 <child>
-                  <object class="GtkFlowBox" id="columns-flowbox">
+                  <object class="GtkBox">
                     <property name="orientation">horizontal</property>
+                    <property name="spacing">6</property>
+                    <property name="vexpand">true</property>
+                    <child>
+                      <object class="GtkFlowBox" id="columns-flowbox">
+                        <property name="orientation">horizontal</property>
+                        <property name="hexpand">false</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="MNNStationMapView" id="map-view">
+                        <property name="hexpand">true</property>
+                        <property name="vexpand">true</property>
+                        <property name="width-request">360</property>
+                      </object>
+                    </child>
+                  </object><!-- columns and map -->
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">horizontal</property>
+                    <property name="spacing">6</property>
+                    <style>
+                      <class name="footer-bar"/>
+                    </style>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Total:</property>
+                        <property name="halign">start</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="grand-total-label">
+                        <property name="label">0</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">true</property>
+                        <style>
+                          <class name="numeric-total"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object><!-- root content box -->

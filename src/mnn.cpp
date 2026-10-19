@@ -19,6 +19,7 @@
 #include <print>
 #include <iostream>
 #include <peel/Adw/Adw.h>
+#include <peel/Dex/functions.h>
 #include "mnn.hpp"
 #include "mnn_application.hpp"
 #include "mnn_application_window.hpp"
@@ -140,6 +141,7 @@ namespace mnn
         std::set_terminate(terminate_handler);
 
         Adw::init();
+        Dex::init();
         Type::of<mnn::Application>().ensure();
         Type::of<mnn::ApplicationWindow>().ensure();
         Type::of<mnn::Station>().ensure();

@@ -26,3 +26,25 @@ flowboxchild:selected,
 flowboxchild:focus {
   background-color: transparent;
 }
+
+.station-pin image {
+    -gtk-icon-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.station-pin-direct {
+    color: @green_4;
+}
+
+.station-pin-relay {
+    color: @yellow_3;
+}
+
+.station-pin-label {
+    font-family: "Monospace";
+    font-size: 0.8em;
+    font-weight: bold;
+    padding: 0 3px;
+    border-radius: 4px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.6);
+}

@@ -1,0 +1,27 @@
+diff --git a/lib/gom-entity.c b/lib/gom-entity.c
+--- a/lib/gom-entity.c
++++ b/lib/gom-entity.c
+@@ -3457,9 +3457,9 @@ gom_entity_update (GomEntity *self)
+   g_autoptr(GomSession) session = NULL;
+   g_autoptr(GomExpression) filter = NULL;
+   g_autoptr(GError) error = NULL;
+-  GomEntityClass *entity_class;
++  GomEntityClass *entity_class = NULL;
+   GObjectClass *object_class;
+-  const char * const *identity_fields;
++  const char * const *identity_fields = NULL;
+   DexFuture *failure;
+
+   dex_return_error_if_fail (GOM_IS_ENTITY (self));
+@@ -3639,9 +3639,9 @@ gom_entity_delete (GomEntity *self)
+   GomEntityDeleteTask *task;
+   g_autoptr(GomRepository) repository = NULL;
+   g_autoptr(GomSession) session = NULL;
+-  GomEntityClass *entity_class;
++  GomEntityClass *entity_class = NULL;
+   GObjectClass *object_class;
+-  const char * const *identity_fields;
++  const char * const *identity_fields = NULL;
+   DexFuture *failure;
+
+   dex_return_error_if_fail (GOM_IS_ENTITY (self));

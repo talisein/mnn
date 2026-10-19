@@ -20,6 +20,8 @@
 #include "mnn_application.hpp"
 #include "mnn_application_window.hpp"
 #include "mnn.hpp"
+#include "database.hpp"
+#include "http_client.hpp"
 #include "config.hpp"
 #include <print>
 #include <peel/Gdk/Gdk.h>
@@ -33,6 +35,7 @@ namespace mnn
     void
     Application::init(Class *)
     {
+        new (&m) Members;
         RefPtr<Gio::SimpleAction> action = Gio::SimpleAction::create ("quit", nullptr);
         action->connect_activate (this, &Application::action_quit);
         cast<Gio::ActionMap> ()->add_action (action);
@@ -42,7 +45,43 @@ namespace mnn
     void
     Application::Class::init()
     {
+        override_vfunc_startup<Application>();
+        override_vfunc_shutdown<Application>();
         override_vfunc_activate<Application>();
+    }
+
+    void
+    Application::vfunc_startup ()
+    {
+        parent_vfunc_startup<Application> ();
+        start_position_lookup();
+    }
+
+    void
+    Application::vfunc_shutdown ()
+    {
+        m.position_lookup = nullptr;
+        parent_vfunc_shutdown<Application> ();
+    }
+
+    peeler::future<bool>
+    Application::start_position_lookup()
+    {
+        RefPtr<Application> keep { this };
+
+        auto driver = open_database();
+        if (!driver)
+            co_return false; // open_database logged why
+
+        auto repo = co_await peeler::into_future<Gom::Repository>(create_repository(driver));
+        if (!repo) {
+            g_warning("failed to create position repository: %s", repo.error()->message);
+            co_return false;
+        }
+
+        m.position_lookup = PositionLookup::create(std::move(*repo), HttpClient::create());
+        notify(prop_position_lookup());
+        co_return true;
     }
 
     void

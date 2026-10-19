@@ -21,10 +21,14 @@
 #include "mnn_callsign_list_view_cell.hpp"
 #include "mnn_button_list_view_cell.hpp"
 #include "mnn_station_column_view.hpp"
+#include "mnn_station_map_view.hpp"
+#include "mnn_application.hpp"
 #include "station.hpp"
 #include "config.hpp"
 #include <glib/gi18n.h>
 #include <peel/widget-template.h>
+#include <format>
+#include <functional>
 #include <ranges>
 
 using namespace peel;
@@ -41,6 +45,8 @@ namespace mnn
     // Popovers need to be unparented
     m.date_entry_popover->unparent();
     m.date_entry_popover = nullptr;
+
+    m.columns.clear();
 
     dispose_template(Type::of<ApplicationWindow> ());
     parent_vfunc_dispose<ApplicationWindow> ();
@@ -60,6 +66,7 @@ namespace mnn
 
       add_binding_action (GDK_KEY_T, Gdk::ModifierType::CONTROL_MASK, "win.new-tab", nullptr);
     */
+    Type::of<StationMapView>().ensure();
     set_template_from_resource(RESOURCE_BASEPATH "/mnn-app-window.ui");
 
     PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.date_entry, "date-entry");
@@ -69,7 +76,9 @@ namespace mnn
     PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.callsign_entry_buffer, "callsign-entry-buffer");
     PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.name_entry_buffer, "name-entry-buffer");
     PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.columns_flowbox, "columns-flowbox");
+    PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.map_view, "map-view");
     PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.toast_overlay, "toast-overlay");
+    PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.grand_total_label, "grand-total-label");
     PEEL_WIDGET_TEMPLATE_BIND_CALLBACK (ApplicationWindow, on_calendar_day_selected);
     PEEL_WIDGET_TEMPLATE_BIND_CALLBACK (ApplicationWindow, on_date_entry_icon_pressed);
   }
@@ -141,11 +150,20 @@ namespace mnn
     auto callsign_factory = CallsignListViewCell::make_factory();
     auto button_factory = ButtonListViewCell::make_factory();
 
+    // Keep every column on one row; the map takes the remaining width.
+    auto n_columns = static_cast<unsigned>(std::ranges::distance(col_view));
+    m.columns_flowbox->set_min_children_per_line(n_columns);
+    m.columns_flowbox->set_max_children_per_line(n_columns);
+
     for (const auto& col : col_view) {
       auto station_col = StationColumnView::create(store,
                                                    col["begin"].get<std::string>().front(),
                                                    col["end"].get<std::string>().front());
+      StationColumnView* column = station_col;
       m.columns_flowbox->append(station_col);
+      SignalConnection conn = column->connect_notify(StationColumnView::prop_total(),
+                                                     [this] (Object*, GObject::ParamSpec*) { update_grand_total(); });
+      m.columns.push_back({column, std::move(conn)});
       /*
       auto filter = Gtk::CustomFilter::create([begin = col["begin"].get<std::string>(), end = col["end"].get<std::string>()]
                                               (Object* o) -> bool {
@@ -172,14 +190,26 @@ namespace mnn
       m.columns_flowbox->append(box);
       */
     }
+    m.map_view->set_model(store);
+    update_grand_total();
+  }
 
-
+  void
+  ApplicationWindow::update_grand_total() noexcept
+  {
+    auto totals = m.columns | std::views::transform([] (const ColumnWatch& c) { return c.column->get_total(); });
+    auto sum = std::ranges::fold_left(totals, 0u, std::plus{});
+    m.grand_total_label->set_label(std::format("{}", sum).c_str());
   }
 
   ApplicationWindow*
-  ApplicationWindow::create (Adw::Application *app)
+  ApplicationWindow::create (Application *app)
   {
-    return Object::create<ApplicationWindow>(prop_application(), app);
+    auto window = Object::create<ApplicationWindow>(prop_application(), app);
+    Object::bind_property(app, Application::prop_position_lookup(),
+                          window->m.map_view, StationMapView::prop_position_lookup(),
+                          GObject::BindingFlags::SYNC_CREATE);
+    return window;
   }
 
 } // namespace mnn

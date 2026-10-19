@@ -23,6 +23,8 @@
 #include <glib/gi18n.h>
 #include <peel/widget-template.h>
 #include <cctype>
+#include <format>
+#include <ranges>
 
 namespace mnn
 {
@@ -31,6 +33,7 @@ namespace mnn
   PEEL_CLASS_IMPL(StationColumnView, "MNNStationColumnView", Gtk::Box);
 
   void StationColumnView::vfunc_dispose() {
+    m.ack_watcher      = nullptr;
     dispose_template(Type::of<StationColumnView>());
     m.button_factory   = nullptr;
     m.callsign_factory = nullptr;
@@ -38,6 +41,7 @@ namespace mnn
     m.model            = nullptr;
     m.filter_begin     = 'A';
     m.filter_end       = 'Z';
+    m.total            = 0;
     parent_vfunc_dispose<StationColumnView>();
   }
 
@@ -47,6 +51,7 @@ namespace mnn
     set_template_from_resource(RESOURCE_BASEPATH "/mnn-station-column-view.ui");
 
     PEEL_WIDGET_TEMPLATE_BIND_CHILD(StationColumnView, m.view, "view");
+    PEEL_WIDGET_TEMPLATE_BIND_CHILD(StationColumnView, m.filter_model, "filter_model");
     PEEL_WIDGET_TEMPLATE_BIND_CHILD(StationColumnView, m.total_label, "total-label");
   }
 
@@ -56,6 +61,24 @@ namespace mnn
     m.callsign_factory = CallsignListViewCell::make_factory();
     m.button_factory   = ButtonListViewCell::make_factory();
     init_template();
+    m.ack_watcher      = ListPropertyWatcher::create(m.filter_model->cast<Gio::ListModel>(), "is-acknowledged");
+    m.ack_watcher->connect_changed(this, &StationColumnView::update_total);
+    update_total(m.ack_watcher);
+  }
+
+  void
+  StationColumnView::update_total(ListPropertyWatcher*) noexcept
+  {
+    auto list = m.filter_model->cast<Gio::ListModel>();
+    auto is_acknowledged = [list] (unsigned i) {
+      RefPtr<Object> station = list->get_object(i);
+      return station->cast<Station>()->is_acknowledged();
+    };
+    unsigned total = std::ranges::count_if(std::views::iota(0u, list->get_n_items()), is_acknowledged);
+    m.total_label->set_label(std::format("{}", total).c_str());
+    if (total == m.total) return;
+    m.total = total;
+    notify(prop_total());
   }
 
   char

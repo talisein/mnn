@@ -1,0 +1,181 @@
+diff --git a/lib/gom-delta.c b/lib/gom-delta.c
+index 63a3993..17467e1 100644
+--- a/lib/gom-delta.c
++++ b/lib/gom-delta.c
+@@ -44,12 +44,12 @@ struct _GomDeltaClass
+   GObjectClass parent_class;
+ };
+ 
+-static void gom_delta_entry_clear (GomDeltaEntry *entry);
++static void gom_delta_entry_free (GomDeltaEntry *entry);
+ 
+ G_DEFINE_FINAL_TYPE (GomDelta, gom_delta, G_TYPE_OBJECT)
+ 
+ static void
+-gom_delta_entry_clear (GomDeltaEntry *entry)
++gom_delta_entry_free (GomDeltaEntry *entry)
+ {
+   if (entry == NULL)
+     return;
+@@ -61,6 +61,8 @@ gom_delta_entry_clear (GomDeltaEntry *entry)
+ 
+   if (G_IS_VALUE (&entry->current_value))
+     g_value_unset (&entry->current_value);
++
++  g_free (entry);
+ }
+ 
+ static void
+@@ -85,7 +87,7 @@ static void
+ gom_delta_init (GomDelta *self)
+ {
+   self->entity_type = G_TYPE_INVALID;
+-  self->entries = g_ptr_array_new_with_free_func ((GDestroyNotify)gom_delta_entry_clear);
++  self->entries = g_ptr_array_new_with_free_func ((GDestroyNotify)gom_delta_entry_free);
+ }
+ 
+ GomDelta *
+diff --git a/lib/gom-entity-migrator.c b/lib/gom-entity-migrator.c
+index b3dad10..3e97650 100644
+--- a/lib/gom-entity-migrator.c
++++ b/lib/gom-entity-migrator.c
+@@ -162,8 +162,6 @@ static DexFuture *
+ gom_entity_migrator_update_fiber (gpointer user_data)
+ {
+   GomEntityMigratorUpdateState *state = user_data;
+-  g_autoptr(GomRegistry) current = NULL;
+-  g_autoptr(GomRegistry) next = NULL;
+   g_autoptr(GError) error = NULL;
+   guint current_version;
+   guint max_version;
+@@ -183,8 +181,8 @@ gom_entity_migrator_update_fiber (gpointer user_data)
+ 
+   for (guint version = current_version; version < max_version; version++)
+     {
+-      current = gom_registry_snapshot (state->migrator->registry, version);
+-      next = gom_registry_snapshot (state->migrator->registry, version + 1);
++      g_autoptr(GomRegistry) current = gom_registry_snapshot (state->migrator->registry, version);
++      g_autoptr(GomRegistry) next = gom_registry_snapshot (state->migrator->registry, version + 1);
+ 
+       if (!dex_await (_gom_driver_migrate (state->driver, current, next), &error))
+         return dex_future_new_for_error (g_steal_pointer (&error));
+diff --git a/lib/gom-entity.c b/lib/gom-entity.c
+index 02a6113..c203dd0 100644
+--- a/lib/gom-entity.c
++++ b/lib/gom-entity.c
+@@ -1187,6 +1187,13 @@ _gom_entity_class_get_relationship (GomEntityClass *klass,
+   return relationship;
+ }
+ 
++/**
++ * gom_entity_class_set_identity_fields:
++ * @klass: a [class@Gom.EntityClass]
++ * @identity_fields: (array zero-terminated=1): the identity field names
++ *
++ * Sets the identity fields used to key entities of @klass.
++ */
+ void
+ gom_entity_class_set_identity_fields (GomEntityClass     *klass,
+                                       const char * const *identity_fields)
+@@ -3169,6 +3176,17 @@ gom_entity_validate_mutation_setup (GomEntity           *self,
+   return NULL;
+ }
+ 
++/**
++ * GomEntityClass::backfill_identity:
++ * @self: a [class@Gom.Entity]
++ * @identity_fields: (array zero-terminated=1): the identity field names to backfill
++ * @record: a [class@Gom.Record] providing the backfilled values
++ * @error: return location for a [type@GLib.Error]
++ *
++ * Backfills the identity fields of @self from @record.
++ *
++ * Returns: %TRUE on success; otherwise %FALSE and @error is set.
++ */
+ static gboolean
+ gom_entity_real_backfill_identity (GomEntity           *self,
+                                    const char * const  *identity_fields,
+@@ -3480,7 +3498,7 @@ gom_entity_update (GomEntity *self)
+   if (!(filter = gom_entity_build_identity_filter (self, entity_class, identity_fields, &error)))
+     return dex_future_new_for_error (g_steal_pointer (&error));
+ 
+-  gom_update_builder_set_filter (builder, g_steal_pointer (&filter));
++  gom_update_builder_set_filter (builder, filter);
+   gom_update_builder_set_limit (builder, 1);
+ 
+   {
+diff --git a/lib/gom-expression.c b/lib/gom-expression.c
+index c536736..7f0b5b8 100644
+--- a/lib/gom-expression.c
++++ b/lib/gom-expression.c
+@@ -571,7 +571,7 @@ gom_unary_expression_new (GomUnaryOperator  operator,
+ 
+   self = g_object_new (GOM_TYPE_UNARY_EXPRESSION, NULL);
+   self->operator = operator;
+-  self->operand = g_object_ref (operand);
++  self->operand = operand;
+ 
+   return GOM_EXPRESSION (self);
+ }
+@@ -588,8 +588,8 @@ gom_binary_expression_new (GomBinaryOperator  operator,
+ 
+   self = g_object_new (GOM_TYPE_BINARY_EXPRESSION, NULL);
+   self->operator = operator;
+-  self->left = g_object_ref (left);
+-  self->right = g_object_ref (right);
++  self->left = left;
++  self->right = right;
+ 
+   return GOM_EXPRESSION (self);
+ }
+@@ -867,8 +867,8 @@ gom_search_expression_new (GomExpression *target,
+   g_return_val_if_fail (GOM_IS_EXPRESSION (query), NULL);
+ 
+   self = g_object_new (GOM_TYPE_SEARCH_EXPRESSION, NULL);
+-  self->target = g_object_ref (target);
+-  self->query = g_object_ref (query);
++  self->target = target;
++  self->query = query;
+   self->mode = mode;
+ 
+   return GOM_EXPRESSION (self);
+diff --git a/lib/gom-repository.c b/lib/gom-repository.c
+index 9c81d66..083265f 100644
+--- a/lib/gom-repository.c
++++ b/lib/gom-repository.c
+@@ -463,7 +463,7 @@ gom_repository_new_fiber (gpointer user_data)
+
+   if (self->coordinator == NULL)
+     {
+-      g_autofree char **relations = NULL;
++      g_auto(GStrv) relations = NULL;
+
+       relations = dex_await_boxed (_gom_driver_list_relations (self->driver,
+                                                                self->registry),
+diff --git a/lib/sqlite/gom-sqlite-session.c b/lib/sqlite/gom-sqlite-session.c
+index b767582..d5c24a1 100644
+--- a/lib/sqlite/gom-sqlite-session.c
++++ b/lib/sqlite/gom-sqlite-session.c
+@@ -520,8 +520,11 @@ gom_sqlite_session_unregister_pending_entity (GomSession *session,
+   _gom_entity_set_pending (entity, FALSE);
+   gom_trace_counter_add (GOM_TRACE_COUNTER_PENDING_ENTITIES, -1);
+ 
+-  if (_gom_entity_dup_session_key (entity) != NULL)
+-    gom_sqlite_session_track_entity_changes (session, entity);
++  {
++    g_autofree char *entity_key = _gom_entity_dup_session_key (entity);
++    if (entity_key != NULL)
++      gom_sqlite_session_track_entity_changes (session, entity);
++  }
+ 
+   if (self->flushing)
+     return;
+@@ -568,7 +571,7 @@ gom_sqlite_session_rekey_entity_identity (GomSession *session,
+   g_hash_table_steal (self->entities_by_key, old_key);
+   _gom_entity_attach (entity, GOM_SESSION (self), entity_key);
+   g_hash_table_insert (self->entities_by_key,
+-                       _gom_entity_dup_session_key (entity),
++                       entity_key,
+                        g_object_ref (entity));
+ 
+   gom_sqlite_session_track_entity_changes (session, entity);

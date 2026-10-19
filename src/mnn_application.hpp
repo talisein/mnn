@@ -22,6 +22,7 @@
 #include <peel/Gio/Gio.h>
 #include <peel/GLib/GLib.h>
 #include <peel/class.h>
+#include "position_lookup.hpp"
 
 namespace mnn
 {
@@ -30,12 +31,35 @@ namespace mnn
         PEEL_SIMPLE_CLASS(Application, peel::Adw::Application);
         friend class peel::Gio::Application;
 
+        struct Members {
+            peel::RefPtr<PositionLookup> position_lookup;
+        } m;
+
         void init(Class *);
+        void vfunc_startup();
+        void vfunc_shutdown();
         void vfunc_activate();
         void action_quit(peel::Gio::SimpleAction *, peel::GLib::Variant *);
 
+        /* Opens the database and builds position_lookup; notifies when ready. */
+        peeler::future<bool> start_position_lookup();
+
     public:
+        PEEL_PROPERTY(PositionLookup, position_lookup, "position-lookup");
+
+        /* Null until the database is open, or if opening it failed. */
+        peel::RefPtr<PositionLookup> get_position_lookup() const noexcept { return m.position_lookup; }
+
         [[nodiscard]] static peel::RefPtr<Application> create();
+
+    private:
+        template<typename F>
+        static void
+        define_properties (F &f)
+        {
+            f.prop(prop_position_lookup())
+                .get(&Application::get_position_lookup);
+        }
     };
 
 } // namespace mnn

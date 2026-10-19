@@ -23,14 +23,24 @@
 #include <peel/Gtk/Gtk.h>
 #include <peel/class.h>
 #include <nlohmann/json.hpp>
+#include <vector>
+#include "mnn_station_column_view.hpp"
+#include "mnn_station_map_view.hpp"
 
 namespace mnn
 {
+    class Application;
+
     class ApplicationWindow final : public peel::Adw::ApplicationWindow
     {
         PEEL_SIMPLE_CLASS (ApplicationWindow, peel::Adw::ApplicationWindow);
 
         void init (Class *);
+
+        struct ColumnWatch {
+            StationColumnView* column; // owned by columns_flowbox
+            peel::SignalConnection conn;
+        };
 
         struct Members {
             peel::RefPtr<peel::Gio::Settings> settings;
@@ -41,17 +51,21 @@ namespace mnn
             peel::Gtk::EntryBuffer* callsign_entry_buffer;
             peel::Gtk::EntryBuffer* name_entry_buffer;
             peel::Gtk::FlowBox* columns_flowbox;
+            StationMapView* map_view;
             peel::Adw::ToastOverlay* toast_overlay;
+            peel::Gtk::Label* grand_total_label;
+            std::vector<ColumnWatch> columns;
         } m;
 
         void setup_net(const nlohmann::json&);
+        void update_grand_total() noexcept;
         void on_calendar_day_selected(peel::Gtk::Calendar*);
         void on_date_entry_icon_pressed(peel::Gtk::Entry*, peel::Gtk::Entry::IconPosition);
     protected:
         void vfunc_dispose();
 
     public:
-        [[nodiscard]] static ApplicationWindow* create(peel::Adw::Application *);
+        [[nodiscard]] static ApplicationWindow* create(Application *);
     };
 
 } // namespace mnn

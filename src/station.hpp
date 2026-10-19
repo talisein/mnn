@@ -49,7 +49,7 @@ namespace mnn
 
     static void init_type(peel::Type tp);
     static void init_interface(peel::Shumate::Location::Iface*);
-    void init (Class*);
+    void init(Class*);
 
     struct Location {
       double latitude;
