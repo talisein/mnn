@@ -443,7 +443,7 @@ namespace mnn
     list->add_css_class("boxed-list");
     list->append(callsign_row);
     list->append(name_row);
-    dialog->set_extra_child(list);
+    dialog->set_extra_child(std::move(list));
 
     dialog->present(this);
     callsign->grab_focus();

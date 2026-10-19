@@ -1,6 +1,9 @@
 [wrap-git]
 url=https://gitlab.gnome.org/bugaevc/peel.git
-revision=HEAD
+# Pinned: peel's API still moves (FloatPtr lost its copy constructor in 2026),
+# and HEAD made a fresh checkout build against a different peel than an
+# existing one. Bump deliberately.
+revision=8fa6897a1eccf657ad2e605953741ca5d7ff817e
 depth=1
 
 [provide]

@@ -11,6 +11,9 @@
 !/subprojects/packagefiles/
 /subprojects/packagecache/
 /subprojects/.wraplock
+# meson writes this redirect itself when gom's nested sqlite3mc.wrap is used;
+# committed, it breaks a fresh checkout (it names a file gom has not got yet)
+/subprojects/sqlite3mc.wrap
 
 # clangd index
 /.cache/
