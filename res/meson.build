@@ -47,6 +47,11 @@ gschemas_compiled = custom_target('gschemas.compiled',
                                   install: false,
                                  )
 
+desktop_file = configure_file(input: 'radio.ki6kvz.MondayNightNet.desktop.in',
+                              output: '@0@.desktop'.format(app_id),
+                              configuration: resource_conf_data)
+install_data(desktop_file, install_dir: get_option('prefix') / get_option('datadir') / 'applications')
+
 gnome.post_install(glib_compile_schemas: true)
 test('validate-schema',
   find_program('glib-compile-schemas'),

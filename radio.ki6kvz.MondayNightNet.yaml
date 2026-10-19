@@ -1,0 +1,64 @@
+app-id: radio.ki6kvz.MondayNightNet
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: monday-night-net
+finish-args:
+  - --share=network # callook.info, Nominatim, map tiles
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /share/gir-1.0
+  - /share/vala
+  - '*.a'
+  - '*.la'
+modules:
+  # libshumate's vector renderer (always built since 1.6) needs the protobuf-c
+  # runtime, which the GNOME SDK lacks. Only the library: no protoc-c.
+  - name: protobuf-c
+    buildsystem: autotools
+    config-opts:
+      - --disable-protoc
+    sources:
+      - type: archive
+        url: https://github.com/protobuf-c/protobuf-c/releases/download/v1.5.2/protobuf-c-1.5.2.tar.gz
+        sha256: e2c86271873a79c92b58fef7ebf8de1aa0df4738347a8bd5d4e65a80a16d0d24
+
+  # Not in org.gnome.Platform. The gir is needed at build time by peel-gen.
+  - name: libshumate
+    buildsystem: meson
+    config-opts:
+      - -Dgtk_doc=false
+      - -Dvapi=false
+      - -Ddemos=false
+    sources:
+      - type: git
+        url: https://gitlab.gnome.org/GNOME/libshumate.git
+        tag: '1.6.3'
+        commit: 4222507d5a2aff1f3357385ef7c44e14e7a8f45f
+
+  - name: monday-night-net
+    buildsystem: meson
+    run-tests: true
+    build-options:
+      # meson fetches the wraps in subprojects/ (peel, gom, libdex, ...) at
+      # configure time. Fine for our own repo; flathub would not allow it.
+      build-args:
+        - --share=network
+    sources:
+      - type: dir
+        path: .
+        skip:
+          - build
+          - build-clang
+          - build-dir
+          - repo
+          - .flatpak-builder
+          - .git
+          - .cache
+          - .claude
+          - prompts

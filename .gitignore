@@ -2,6 +2,10 @@
 /build/
 /build-*/
 
+# flatpak-builder state and output repo
+/.flatpak-builder/
+/repo/
+
 # Wrap-downloaded subproject sources (keep the .wrap files + packagefiles)
 /subprojects/*/
 !/subprojects/packagefiles/
