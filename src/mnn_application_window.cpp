@@ -261,6 +261,7 @@ namespace mnn
       {"ss_callsign", std::string { to_sview(m.callsign_entry_buffer->get_text()) }},
       {"ss_name", std::string { to_sview(m.name_entry_buffer->get_text()) }},
       {"columns", m.column_defs},
+      {"map", m.map_view->view_to_json()},
       {"stations", std::move(stations)},
     };
   }

@@ -450,4 +450,36 @@ namespace mnn
     }
   }
 
+  nlohmann::json
+  StationMapView::view_to_json() const
+  {
+    auto *viewport = m.map->get_viewport();
+    auto *center = viewport->cast<Shumate::Location>();
+    nlohmann::json view = {
+      {"center", {{"lat", center->get_latitude()}, {"long", center->get_longitude()}}},
+      {"zoom", viewport->get_zoom_level()},
+      {"rotation", viewport->get_rotation()}, // radians
+    };
+    if (auto *source = m.map->get_map_source())
+      view["source"] = source->get_id();
+
+    // Corners rather than two opposite ones: with rotation, any corner can be
+    // the extreme.
+    auto *map = m.map->get_map();
+    double w = map->get_width(), h = map->get_height();
+    if (w > 0 && h > 0) {
+      double north = -90, south = 90, east = -180, west = 180;
+      for (auto [x, y] : { std::pair { 0.0, 0.0 }, { w, 0.0 }, { 0.0, h }, { w, h } }) {
+        double lat, lon;
+        viewport->widget_coords_to_location(map, x, y, &lat, &lon);
+        north = std::max(north, lat);
+        south = std::min(south, lat);
+        east  = std::max(east, lon);
+        west  = std::min(west, lon);
+      }
+      view["bounds"] = { {"north", north}, {"south", south}, {"east", east}, {"west", west} };
+    }
+    return view;
+  }
+
 } // namespace mnn

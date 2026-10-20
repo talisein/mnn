@@ -21,6 +21,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <nlohmann/json.hpp>
 #include <peel/Adw/Adw.h>
 #include <peel/Gtk/Gtk.h>
 #include <peel/Gio/Gio.h>
@@ -120,6 +121,10 @@ namespace mnn
     /* Normalized; an invalid callsign clears home. Looked up after a short
      * pause, so typing doesn't query every prefix. */
     void set_home_callsign(const char* callsign) noexcept;
+    /* The visible map: center, zoom, rotation, source, and the bounding box
+     * of what is on screen, so a differently sized window can be fit to the
+     * same area. Saved with the net. */
+    nlohmann::json view_to_json() const;
 
   private:
     template<typename F>
