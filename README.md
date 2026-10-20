@@ -18,5 +18,5 @@ libsoup 3 and a C++26 compiler (GCC 15 or newer). Meson fetches the rest
 meson setup build
 ninja -C build
 meson test -C build
-GSETTINGS_SCHEMA_DIR=$PWD/build/res meson devenv -C build src/monday-night-net
+meson devenv -C build src/monday-night-net
 ```

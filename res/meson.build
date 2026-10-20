@@ -47,6 +47,11 @@ gschemas_compiled = custom_target('gschemas.compiled',
                                   install: false,
                                  )
 
+# So `meson devenv` runs the app without installing the schema.
+schema_devenv = environment()
+schema_devenv.prepend('GSETTINGS_SCHEMA_DIR', meson.current_build_dir())
+meson.add_devenv(schema_devenv)
+
 desktop_file = configure_file(input: 'radio.ki6kvz.MondayNightNet.desktop.in',
                               output: '@0@.desktop'.format(app_id),
                               configuration: resource_conf_data)
