@@ -1,7 +1,9 @@
 [wrap-git]
 directory=libdex
 url=https://gitlab.gnome.org/GNOME/libdex.git
-revision=main
+# Pinned alongside peel and gom (gom master needs libdex >= 1.2). Bump
+# deliberately.
+revision=c97de27a9928f231efcdc027cd8862c553761400
 
 [provide]
 dependency_names=libdex-1
