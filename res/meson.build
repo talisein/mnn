@@ -57,7 +57,12 @@ desktop_file = configure_file(input: 'radio.ki6kvz.MondayNightNet.desktop.in',
                               configuration: resource_conf_data)
 install_data(desktop_file, install_dir: get_option('prefix') / get_option('datadir') / 'applications')
 
-gnome.post_install(glib_compile_schemas: true)
+# Renamed to app_id so the .Devel build's desktop file finds its icon too.
+install_data('radio.ki6kvz.MondayNightNet.svg',
+             install_dir: get_option('prefix') / get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
+             rename: '@0@.svg'.format(app_id))
+
+gnome.post_install(glib_compile_schemas: true, gtk_update_icon_cache: true)
 test('validate-schema',
   find_program('glib-compile-schemas'),
   args: ['--strict', '--dry-run', meson.current_build_dir()],
