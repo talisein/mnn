@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>@app_id@</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>Monday Night Net</name>
+  <summary>Amateur radio net check-in log</summary>
+  <developer id="radio.ki6kvz">
+    <name>Andrew Potter</name>
+  </developer>
+
+  <description>
+    <p>
+      A check-in log for the RACES/ARES Mountain View Monday Night net. As
+      the net runs, mark each station as heard directly or through a relay.
+      A pin appears on the map at the station's FCC license address, with
+      relayed stations in yellow, so you can see how well your antenna hears
+      across the city.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">@app_id@.desktop</launchable>
+  <url type="homepage">https://github.com/talisein/mnn</url>
+  <url type="vcs-browser">https://github.com/talisein/mnn</url>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>The check-in log and map during a net</caption>
+      <image>https://raw.githubusercontent.com/talisein/mnn/main/screenshots/main-window.png</image>
+    </screenshot>
+  </screenshots>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+
+  <content_rating type="oars-1.1"/>
+</component>

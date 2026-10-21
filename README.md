@@ -6,6 +6,8 @@ libadwaita.
 
 As the net runs, I mark the stations I can hear directly, or those that need a relay. A pin pops up on the map based on the FCC license data; the stations needing a relay are in yellow. This helps me understand how well my antenna can hear throughout the city.
 
+![The check-in log and map during the 2026-10-19 net](screenshots/main-window.png)
+
 If you'd like a Flatpak, you can click this button:
 
 <a href='https://flatpak.39music.dance/repo/stable/appstream/radio.ki6kvz.MondayNightNet.flatpakref'><img height='51' alt='Download on 39music' src='https://flatpak.39music.dance/repo/stable/appstream/39music-badge.png'/></a>

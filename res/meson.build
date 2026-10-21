@@ -62,6 +62,20 @@ install_data('radio.ki6kvz.MondayNightNet.svg',
              install_dir: get_option('prefix') / get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
              rename: '@0@.svg'.format(app_id))
 
+metainfo_file = configure_file(input: 'radio.ki6kvz.MondayNightNet.metainfo.xml.in',
+                               output: '@0@.metainfo.xml'.format(app_id),
+                               configuration: resource_conf_data)
+install_data(metainfo_file, install_dir: get_option('prefix') / get_option('datadir') / 'metainfo')
+
+appstreamcli_prog = find_program('appstreamcli', required : false)
+if appstreamcli_prog.found()
+    test('validate-metainfo',
+        appstreamcli_prog,
+        args: ['validate', '--no-net', '--explain', metainfo_file],
+        suite: 'validation',
+    )
+endif
+
 gnome.post_install(glib_compile_schemas: true, gtk_update_icon_cache: true)
 test('validate-schema',
   find_program('glib-compile-schemas'),
