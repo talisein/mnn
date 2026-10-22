@@ -2,10 +2,18 @@ project('monday-night-net', ['c', 'cpp'],
         license: 'GPLv3+',
         version: '0.0.1',
         meson_version: '>=1.4.0',
-        default_options: ['cpp_std=c++26',
+        # MSVC and clang-cl have no c++26 option; c++latest is their newest.
+        default_options: ['cpp_std=c++26,c++latest',
                           'buildtype=debugoptimized'])
 
 cpp_compiler = meson.get_compiler('cpp')
+# cpp_std is not applied to compiler checks, so the stacktrace checks pass it
+# themselves, spelled the way this compiler wants.
+if cpp_compiler.get_argument_syntax() == 'msvc'
+  cpp_std_arg = '/std:@0@'.format(get_option('cpp_std'))
+else
+  cpp_std_arg = '-std=@0@'.format(get_option('cpp_std'))
+endif
 gtk = dependency('gtk4')
 libadwaita = dependency('libadwaita-1', version: '>= 1.5')
 libshumate = dependency('shumate-1.0')
@@ -16,14 +24,14 @@ libcorefoundation = dependency('appleframeworks', modules: ['CoreFoundation'], r
 
 libstdcppexp = declare_dependency()
 has_stacktrace = false
-if cpp_compiler.links('#include <stacktrace>\nint main() { std::stacktrace::current(); return 0; }', name: 'std::stacktrace::current()', args: '-std=@0@'.format(get_option('cpp_std')), dependencies: libstdcppexp)
+if cpp_compiler.links('#include <stacktrace>\nint main() { std::stacktrace::current(); return 0; }', name: 'std::stacktrace::current()', args: cpp_std_arg, dependencies: libstdcppexp)
   has_stacktrace = true
 else
   if cpp_compiler.get_id() == 'gcc'
     explib = cpp_compiler.find_library('stdc++exp', required: false)
     if explib.found()
       libstdcppexp = declare_dependency(dependencies: explib)
-      if cpp_compiler.links('#include <stacktrace>\nint main() { std::stacktrace::current(); return 0; }', name: 'std::stacktrace::current()', args: '-std=@0@'.format(get_option('cpp_std')), dependencies: libstdcppexp)
+      if cpp_compiler.links('#include <stacktrace>\nint main() { std::stacktrace::current(); return 0; }', name: 'std::stacktrace::current()', args: cpp_std_arg, dependencies: libstdcppexp)
         has_stacktrace = true
       endif
     endif
@@ -74,7 +82,7 @@ peel_gen = find_program('peel-gen')
 
 # Gom-2.gir and Dex-1.gir are generated inside the subproject build dirs;
 # peel-gen searches GI_GIR_PATH before the system gir-1.0 directories.
-subproject_gir_path = ':'.join([
+subproject_gir_path = (build_machine.system() == 'windows' ? ';' : ':').join([
   meson.global_build_root() / 'subprojects' / 'gom' / 'lib',
   meson.global_build_root() / 'subprojects' / 'libdex' / 'src',
 ])
