@@ -64,7 +64,10 @@ peel = peel_subp.get_variable('peel_dep')
 # and peel-gen consumes both girs from the build tree.
 libdex = dependency('libdex-1', version: '>= 1.2',
                     default_options: {'introspection': 'enabled',
-                                      'default_library': 'shared'})
+                                      'default_library': 'shared',
+                                      'vapi': false,
+                                      'pygobject': false,
+                                      'examples': false})
 
 gom_subp = subproject('gom',
                       default_options: {'introspection': 'enabled',
