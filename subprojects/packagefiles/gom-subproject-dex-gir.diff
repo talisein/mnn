@@ -1,0 +1,27 @@
+diff --git a/lib/meson.build b/lib/meson.build
+index fdf7238..2bae7c8 100644
+--- a/lib/meson.build
++++ b/lib/meson.build
+@@ -207,6 +207,13 @@ pkg.generate(
+ )
+ 
+ if get_option('introspection').enabled()
++  # 'Dex-1' by name is found only where libdex is installed. With libdex as
++  # a subproject, name its GIR target instead, so the scanner looks in the
++  # build tree and runs after Dex-1.gir is generated.
++  libgom_gir_includes = ['Gio-2.0', 'Dex-1']
++  if dex_dep.type_name() == 'internal'
++    libgom_gir_includes = ['Gio-2.0', subproject('libdex').get_variable('libdex_gir')[0]]
++  endif
+   libgom_gir = gnome.generate_gir(libgom,
+                 sources: [libgom_sources, libgom_headers],
+               nsversion: api_version,
+@@ -216,7 +223,7 @@ if get_option('introspection').enabled()
+       identifier_prefix: 'Gom',
+         install_dir_gir: girdir,
+     install_dir_typelib: typelibdir,
+-               includes: ['Gio-2.0', 'Dex-1'],
++               includes: libgom_gir_includes,
+                 install: true,
+                  header: 'libgom.h',
+              extra_args: ['-DGOM_COMPILATION'],
