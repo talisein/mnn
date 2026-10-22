@@ -62,12 +62,17 @@ peel = peel_subp.get_variable('peel_dep')
 # gom master needs libdex >= 1.2; Fedora ships 1.1, so this falls back to the
 # libdex.wrap subproject. Introspection must be on: gom's gir includes Dex-1,
 # and peel-gen consumes both girs from the build tree.
+libdex_options = {'introspection': 'enabled',
+                  'default_library': 'shared',
+                  'vapi': false,
+                  'pygobject': false,
+                  'examples': false}
+if host_machine.system() == 'windows'
+  # Its test-aio uses fcntl() and O_CLOEXEC.
+  libdex_options += {'tests': false}
+endif
 libdex = dependency('libdex-1', version: '>= 1.2',
-                    default_options: {'introspection': 'enabled',
-                                      'default_library': 'shared',
-                                      'vapi': false,
-                                      'pygobject': false,
-                                      'examples': false})
+                    default_options: libdex_options)
 
 gom_subp = subproject('gom',
                       default_options: {'introspection': 'enabled',

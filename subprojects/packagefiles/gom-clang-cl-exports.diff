@@ -1,0 +1,15 @@
+diff --git a/meson.build b/meson.build
+index 2882604..a957899 100644
+--- a/meson.build
++++ b/meson.build
+@@ -128,7 +128,9 @@ add_project_arguments(project_c_args, language: 'c')
+ if get_option('default_library') != 'static'
+   if host_machine.system() == 'windows'
+     config_h.set('DLL_EXPORT', true)
+-    if cc.get_id() == 'msvc'
++    # get_argument_syntax(), not get_id(): clang-cl is 'clang-cl', and
++    # it takes neither -fvisibility nor exports without dllexport.
++    if cc.get_argument_syntax() == 'msvc'
+       config_h.set('_GOM_EXTERN', '__declspec(dllexport) extern')
+     elif cc.has_argument('-fvisibility=hidden')
+       config_h.set('_GOM_EXTERN', '__attribute__((visibility("default"))) __declspec(dllexport) extern')

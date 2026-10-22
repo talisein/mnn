@@ -9,7 +9,8 @@ revision=c97de27a9928f231efcdc027cd8862c553761400
 # diff declares them guint.
 # libdex-windows-no-fd-watch.diff: dex_fd_watch() uses g_source_add_unix_fd(),
 # which GLib has only on Unix, so it is built only there.
-diff_files=libdex-unsigned-bitfields.diff,libdex-windows-no-fd-watch.diff
+# libdex-clang-cl-exports.diff: dllexport for clang-cl too, not only cl.
+diff_files=libdex-unsigned-bitfields.diff,libdex-windows-no-fd-watch.diff,libdex-clang-cl-exports.diff
 
 [provide]
 dependency_names=libdex-1
