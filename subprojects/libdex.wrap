@@ -7,7 +7,9 @@ revision=c97de27a9928f231efcdc027cd8862c553761400
 # Enum bit-fields are signed under the MSVC ABI (clang-cl too), so e.g.
 # DEX_FUTURE_STATUS_REJECTED (2) read back as -2 from a 2-bit field. The
 # diff declares them guint.
-diff_files=libdex-unsigned-bitfields.diff
+# libdex-windows-no-fd-watch.diff: dex_fd_watch() uses g_source_add_unix_fd(),
+# which GLib has only on Unix, so it is built only there.
+diff_files=libdex-unsigned-bitfields.diff,libdex-windows-no-fd-watch.diff
 
 [provide]
 dependency_names=libdex-1

@@ -1,0 +1,63 @@
+diff --git a/src/dex-gio.c b/src/dex-gio.c
+index 91e7b85..5730b8d 100644
+--- a/src/dex-gio.c
++++ b/src/dex-gio.c
+@@ -37,7 +37,9 @@
+ #include "dex-socket-wait-private.h"
+ #include "dex-thread-pool-scheduler.h"
+ #include "dex-thread.h"
++#ifdef G_OS_UNIX
+ #include "dex-watch-private.h"
++#endif
+ 
+ typedef struct _DexFileInfoList DexFileInfoList;
+ typedef struct _DexSrvTargetList DexSrvTargetList;
+@@ -5050,6 +5052,7 @@ dex_unlink (const char *path)
+                            g_free);
+ }
+ 
++#ifdef G_OS_UNIX
+ /**
+  * dex_fd_watch:
+  * @fd: a file-descriptor
+@@ -5071,3 +5074,4 @@ dex_fd_watch (int fd,
+ {
+   return dex_watch_new (fd, events);
+ }
++#endif
+diff --git a/src/dex-gio.h b/src/dex-gio.h
+index cf5a327..a54f4cb 100644
+--- a/src/dex-gio.h
++++ b/src/dex-gio.h
+@@ -386,8 +386,10 @@ DEX_AVAILABLE_IN_1_1
+ DexFuture *dex_find_program_in_path                       (const char                  *program) G_GNUC_WARN_UNUSED_RESULT;
+ DEX_AVAILABLE_IN_1_1
+ DexFuture *dex_unlink                                     (const char                  *path) G_GNUC_WARN_UNUSED_RESULT;
++#ifdef G_OS_UNIX
+ DEX_AVAILABLE_IN_1_1
+ DexFuture *dex_fd_watch                                   (int                          fd,
+                                                            int                          events) G_GNUC_WARN_UNUSED_RESULT;
++#endif
+ 
+ G_END_DECLS
+diff --git a/src/meson.build b/src/meson.build
+index 8fbb561..a8977a8 100644
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -42,7 +42,6 @@ libdex_sources = [
+   'dex-timeout.c',
+   'dex-version.c',
+   'dex-waiter.c',
+-  'dex-watch.c',
+   'dex-work-queue.c',
+   'dex-work-stealing-queue.c',
+ ]
+@@ -143,6 +142,8 @@ if host_machine.system() != 'windows'
+   libdex_sources += [
+     'dex-unix-signal.c',
+     'dex-ucontext.c',
++    # g_source_add_unix_fd() exists only on Unix.
++    'dex-watch.c',
+   ]
+   if libucontext_dep.found()
+     libdex_deps += [libucontext_dep]
