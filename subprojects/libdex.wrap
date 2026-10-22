@@ -4,6 +4,10 @@ url=https://gitlab.gnome.org/GNOME/libdex.git
 # Pinned alongside peel and gom (gom master needs libdex >= 1.2). Bump
 # deliberately.
 revision=c97de27a9928f231efcdc027cd8862c553761400
+# Enum bit-fields are signed under the MSVC ABI (clang-cl too), so e.g.
+# DEX_FUTURE_STATUS_REJECTED (2) read back as -2 from a 2-bit field. The
+# diff declares them guint.
+diff_files=libdex-unsigned-bitfields.diff
 
 [provide]
 dependency_names=libdex-1

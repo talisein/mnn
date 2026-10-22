@@ -1,0 +1,13 @@
+diff --git a/lib/gom-entity-list-model.c b/lib/gom-entity-list-model.c
+index 3ac3141..15b4779 100644
+--- a/lib/gom-entity-list-model.c
++++ b/lib/gom-entity-list-model.c
+@@ -62,7 +62,7 @@ struct _GomEntityListModel
+   guint                page_size;
+   guint                loading : 1;
+   guint                refresh_pending : 1;
+-  GomEntityListSource  source : 1;
++  guint                source : 1;  /* GomEntityListSource */
+ };
+ 
+ enum

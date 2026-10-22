@@ -1,0 +1,78 @@
+diff --git a/src/dex-block.c b/src/dex-block.c
+index 9021a51..adf2f55 100644
+--- a/src/dex-block.c
++++ b/src/dex-block.c
+@@ -42,7 +42,7 @@ typedef struct _DexBlock
+   DexFutureCallback  callback;
+   gpointer           callback_data;
+   GDestroyNotify     callback_data_destroy;
+-  DexBlockKind       kind : 3;
++  guint              kind : 3;  /* DexBlockKind */
+   guint              handled : 1;
+ } DexBlock;
+ 
+diff --git a/src/dex-channel.c b/src/dex-channel.c
+index 3121836..b0151a1 100644
+--- a/src/dex-channel.c
++++ b/src/dex-channel.c
+@@ -125,7 +125,7 @@ struct _DexChannel
+   guint capacity;
+ 
+   /* Flags indicating what sides of the channel are open/closed */
+-  DexChannelStateFlags flags : 2;
++  guint                flags : 2;  /* DexChannelStateFlags */
+ };
+ 
+ typedef struct _DexChannelClass
+diff --git a/src/dex-coroutine.c b/src/dex-coroutine.c
+index 9954cdd..35643f6 100644
+--- a/src/dex-coroutine.c
++++ b/src/dex-coroutine.c
+@@ -76,7 +76,7 @@ struct _DexCoroutine
+   gpointer               user_data;
+   GDestroyNotify         user_data_destroy;
+   DexCoroutineScheduler *coroutine_scheduler;
+-  DexCoroutineQueue      queue : 2;
++  guint                  queue : 2;  /* DexCoroutineQueue */
+   guint                  running : 1;
+   guint                  runnable : 1;
+   guint                  cancelled : 1;
+diff --git a/src/dex-future-private.h b/src/dex-future-private.h
+index cd516e2..9fcc460 100644
+--- a/src/dex-future-private.h
++++ b/src/dex-future-private.h
+@@ -44,7 +44,7 @@ typedef struct _DexFuture
+   GList            task_group_link;
+   gpointer         task_group;
+   const char      *name;
+-  DexFutureStatus  status : 2;
++  guint            status : 2;  /* DexFutureStatus */
+ } DexFuture;
+ 
+ typedef struct _DexFutureClass
+diff --git a/src/dex-future-set.c b/src/dex-future-set.c
+index addfdb7..7880058 100644
+--- a/src/dex-future-set.c
++++ b/src/dex-future-set.c
+@@ -46,7 +46,7 @@ typedef struct _DexFutureSet
+   guint               n_futures;
+   guint               n_resolved;
+   guint               n_rejected;
+-  DexFutureSetFlags   flags : 4;
++  guint               flags : 4;  /* DexFutureSetFlags */
+   guint               padding : 28;
+   /* If n_futures <= 2, we use this instead of mallocing. We could
+    * potentially get a 3rd without breaking 2-cachelines (128 bytes)
+diff --git a/src/dex-thread-pool-worker.c b/src/dex-thread-pool-worker.c
+index 105045f..df4d0ac 100644
+--- a/src/dex-thread-pool-worker.c
++++ b/src/dex-thread-pool-worker.c
+@@ -65,7 +65,7 @@ struct _DexThreadPoolWorker
+   _Atomic int                steal_requested;
+   guint                      steal_cursor;
+ 
+-  DexThreadPoolWorkerStatus  status : 2;
++  guint                      status : 2;  /* DexThreadPoolWorkerStatus */
+   guint                      force_create : 1;
+ };
+ 
