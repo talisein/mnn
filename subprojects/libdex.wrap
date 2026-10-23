@@ -10,12 +10,15 @@ revision=c97de27a9928f231efcdc027cd8862c553761400
 # libdex-windows-no-fd-watch.diff: dex_fd_watch() uses g_source_add_unix_fd(),
 # which GLib has only on Unix, so it is built only there.
 # libdex-clang-cl-exports.diff: dllexport for clang-cl too, not only cl.
-# libdex-scheduler-gnuc-guard.diff: dex-scheduler.h's ({...}) macros only
-# under GNU C, as dex-future.h already does; cl compiles peel's C++ wrappers.
+# libdex-windows-file-test.diff: dex_file_test() judges G_FILE_TEST_IS_EXECUTABLE
+# by extension on Windows, as g_file_test() does; GIO's can-execute there only
+# means the file exists.
+# libdex-name-macros-guard.diff: the ({...}) static-name macros only under GNU C
+# or clang (clang-cl included), in dex-scheduler.h too; cl compiles peel's C++.
 # libdex-windows-tests.diff: skips test-aio and test-watch on Windows and
 # gives two timing-sensitive tests room for timeouts that round up to the
 # ~15.6msec scheduler tick there.
-diff_files=libdex-unsigned-bitfields.diff,libdex-windows-no-fd-watch.diff,libdex-clang-cl-exports.diff,libdex-scheduler-gnuc-guard.diff,libdex-windows-tests.diff
+diff_files=libdex-unsigned-bitfields.diff,libdex-windows-no-fd-watch.diff,libdex-windows-file-test.diff,libdex-clang-cl-exports.diff,libdex-name-macros-guard.diff,libdex-windows-tests.diff
 
 [provide]
 dependency_names=libdex-1

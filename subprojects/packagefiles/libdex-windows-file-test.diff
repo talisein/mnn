@@ -1,0 +1,73 @@
+--- a/src/dex-gio.c
++++ b/src/dex-gio.c
+@@ -22,6 +22,7 @@
+ #include "config.h"
+ 
+ #include <stdarg.h>
++#include <string.h>
+ 
+ #include <glib/gstdio.h>
+ 
+@@ -1810,6 +1811,49 @@
+   return dex_future_new_for_boolean (matches);
+ }
+ 
++#ifdef G_OS_WIN32
++/* g_file_test() calls a file executable on Windows by its extension: .exe,
++ * .cmd, .bat, .com or one listed in %PATHEXT%. GIO's access::can-execute
++ * there is _waccess() with X_OK defined as 0, which only says it exists. */
++static gboolean
++dex_file_test_win32_has_executable_extension (const char *filename)
++{
++  static const char * const builtin[] = { ".exe", ".cmd", ".bat", ".com" };
++  const char *lastdot = strrchr (filename, '.');
++  const char *pathext;
++  char *ext;
++  char **exts;
++  gboolean ret = FALSE;
++
++  if (lastdot == NULL)
++    return FALSE;
++
++  for (guint i = 0; i < G_N_ELEMENTS (builtin); i++)
++    {
++      if (g_ascii_strcasecmp (lastdot, builtin[i]) == 0)
++        return TRUE;
++    }
++
++  if (!(pathext = g_getenv ("PATHEXT")))
++    return FALSE;
++
++  ext = g_utf8_casefold (lastdot, -1);
++  exts = g_strsplit (pathext, ";", -1);
++
++  for (guint i = 0; exts[i] != NULL && !ret; i++)
++    {
++      char *folded = g_utf8_casefold (exts[i], -1);
++      ret = strcmp (ext, folded) == 0;
++      g_free (folded);
++    }
++
++  g_strfreev (exts);
++  g_free (ext);
++
++  return ret;
++}
++#endif
++
+ static DexFuture *
+ dex_file_test_error_cb (DexFuture *future,
+                         gpointer   user_data)
+@@ -1840,6 +1884,12 @@
+ 
+   g_return_val_if_fail (filename != NULL, NULL);
+ 
++#ifdef G_OS_WIN32
++  /* can-execute only means "exists" there, so the extension decides. */
++  if (!dex_file_test_win32_has_executable_extension (filename))
++    test &= ~G_FILE_TEST_IS_EXECUTABLE;
++#endif
++
+   file = g_file_new_for_path (filename);
+   future = dex_file_query_info (file,
+                                 G_FILE_ATTRIBUTE_STANDARD_TYPE ","

@@ -1,0 +1,43 @@
+diff --git a/src/dex-future.h b/src/dex-future.h
+index 20f7654..69c99c7 100644
+--- a/src/dex-future.h
++++ b/src/dex-future.h
+@@ -238,7 +238,8 @@ DEX_AVAILABLE_IN_ALL
+ gpointer         dex_await_object                (DexFuture          *future,
+                                                   GError            **error) G_GNUC_WARN_UNUSED_RESULT;
+ 
+-#if G_GNUC_CHECK_VERSION(3,0) && !defined(DEX_DISABLE_STATIC_NAME_MACROS)
++/* Statement expressions: GNU C, and clang in every mode (clang-cl too). */
++#if (G_GNUC_CHECK_VERSION(3,0) || defined(__clang__)) && !defined(DEX_DISABLE_STATIC_NAME_MACROS)
+ # define _DEX_FUTURE_NEW_(func, counter, ...) \
+   ({ DexFuture *G_PASTE(__f, counter) = G_PASTE (dex_future_, func) (__VA_ARGS__); \
+      dex_future_set_static_name (DEX_FUTURE (G_PASTE (__f, counter)), G_STRLOC); \
+diff --git a/src/dex-promise.h b/src/dex-promise.h
+index 916944f..5714511 100644
+--- a/src/dex-promise.h
++++ b/src/dex-promise.h
+@@ -101,7 +101,8 @@ void          dex_promise_reject          (DexPromise   *promise,
+ 
+ G_DEFINE_AUTOPTR_CLEANUP_FUNC (DexPromise, dex_unref)
+ 
+-#if G_GNUC_CHECK_VERSION(3,0) && !defined(DEX_DISABLE_STATIC_NAME_MACROS)
++/* Statement expressions: GNU C, and clang in every mode (clang-cl too). */
++#if (G_GNUC_CHECK_VERSION(3,0) || defined(__clang__)) && !defined(DEX_DISABLE_STATIC_NAME_MACROS)
+ # define _DEX_PROMISE_NEW(func, ...) \
+   ({ DexPromise *__p = G_PASTE (dex_promise_, func) (__VA_ARGS__); \
+      dex_future_set_static_name (DEX_FUTURE (__p), G_STRLOC); \
+diff --git a/src/dex-scheduler.h b/src/dex-scheduler.h
+index 8d41d07..90fc0e0 100644
+--- a/src/dex-scheduler.h
++++ b/src/dex-scheduler.h
+@@ -106,7 +106,9 @@ DexFuture    *dex_scheduler_spawnv             (DexScheduler     *scheduler,
+                                                 guint             n_params,
+                                                 ...) G_GNUC_WARN_UNUSED_RESULT;
+ 
+-#if !defined(DEX_DISABLE_STATIC_NAME_MACROS)
++/* Statement expressions: GNU C, and clang in every mode (clang-cl too), as
++ * dex-future.h and dex-promise.h guard theirs. */
++#if (G_GNUC_CHECK_VERSION(3,0) || defined(__clang__)) && !defined(DEX_DISABLE_STATIC_NAME_MACROS)
+ # define _DEX_FIBER_NEW_(counter, scheduler, stack_size, func, func_data, func_data_destroy) \
+   ({ DexFuture *G_PASTE(__f, counter) = dex_scheduler_spawn ((scheduler), \
+                                                              (stack_size), \
