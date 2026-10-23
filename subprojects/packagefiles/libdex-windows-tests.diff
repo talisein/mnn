@@ -21,3 +21,20 @@ index bf84fe5..eef9ea6 100644
  }
  
  testsuite_deps = [
+diff --git a/testsuite/test-coroutine.c b/testsuite/test-coroutine.c
+index f220b15..f726714 100644
+--- a/testsuite/test-coroutine.c
++++ b/testsuite/test-coroutine.c
+@@ -516,7 +516,12 @@ test_coroutine_suspend_gauntlet (void)
+ 
+   state = test_coroutine_suspend_gauntlet_state_new ();
+   state->run_count = g_new0 (guint, 1);
++#ifdef G_OS_WIN32
++  /* Each 100usec timeout waits a whole scheduler tick (~15.6msec) there. */
++  state->limit = 500;
++#else
+   state->limit = 10000;
++#endif
+ 
+   future = dex_scheduler_spawn_coroutine (NULL,
+                                           test_coroutine_suspend_gauntlet_func,

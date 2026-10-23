@@ -12,7 +12,8 @@ revision=c97de27a9928f231efcdc027cd8862c553761400
 # libdex-clang-cl-exports.diff: dllexport for clang-cl too, not only cl.
 # libdex-scheduler-gnuc-guard.diff: dex-scheduler.h's ({...}) macros only
 # under GNU C, as dex-future.h already does; cl compiles peel's C++ wrappers.
-# libdex-windows-tests.diff: skips test-aio and test-watch on Windows.
+# libdex-windows-tests.diff: skips test-aio and test-watch on Windows and
+# shortens the coroutine suspend gauntlet, whose timeouts round up to a tick.
 diff_files=libdex-unsigned-bitfields.diff,libdex-windows-no-fd-watch.diff,libdex-clang-cl-exports.diff,libdex-scheduler-gnuc-guard.diff,libdex-windows-tests.diff
 
 [provide]
