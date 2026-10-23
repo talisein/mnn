@@ -207,8 +207,13 @@ Write-Step 'Data'
 
 # GSettings schemas: GLib's, GTK's and gsettings-desktop-schemas', next to
 # mnn's from meson install. Compiled below.
+# The wallpaper schemas are left out: their defaults are file:// URIs into
+# the GTK prefix, and nothing on Windows reads them.
 $schemaDir = Join-Path $Stage 'share\glib-2.0\schemas'
 Copy-Into (Join-Path $GtkPrefix 'share\glib-2.0\schemas\*.xml') $schemaDir
+foreach ($s in @('org.gnome.desktop.background.gschema.xml', 'org.gnome.desktop.screensaver.gschema.xml')) {
+    Remove-Item -Force (Join-Path $schemaDir $s)
+}
 
 # Icons. hicolor is the fallback theme that holds mnn's own icon. Of
 # Adwaita, only the symbolic icons: GTK 4 and libadwaita use symbolic icons
@@ -294,11 +299,26 @@ Write-Step 'Self-check'
 
 $failed = 0
 
-# 1. No build or prefix paths. Prefix paths compiled into the GTK stack
-#    that are never used on Windows (each library relocates against its own
-#    DLL) are allowed per file, with the reason. mnn's own files allow none.
+# 1. No build or prefix paths that anything opens at run time.
+#    - Source files and .pdb paths are debug info and assertion messages:
+#      __FILE__, the CodeView record, Rust's panic locations. They are never
+#      opened, and are allowed everywhere.
+#    - Any other path is a lookup. The GTK stack's compiled-in prefix
+#      directories are allowed per file, each with the reason it is never
+#      used on Windows. mnn's own files allow none.
 $needles = @('c:\gtk-build', 'c:/gtk-build', 'c:\dev', 'c:/dev')
+# gvsbuild's build\ and tools\ (cargo's registry) hold only sources; Rust's
+# strings are not NUL-terminated, so a panic location can run straight into
+# the next string and hide its extension.
+$debugPath = '\.(c|cc|cpp|h|hpp|inc|rs|pdb)$|^c:[\\/]gtk-build[\\/](build|tools)[\\/]'
 $allowed = [ordered]@{
+    'bin\glib-2.0-0.dll'      = 'GLIB_LOCALE_DIR: only its share\locale tail is used, appended to the DLL''s root (ggettext.c)'
+    'bin\gtk-4-1.dll'         = 'GTK_LIBDIR and GTK_LOCALEDIR: only their tails are used, appended to the DLL''s root (gtkwin32.c)'
+    'bin\adwaita-1-0.dll'     = 'LOCALEDIR: Windows builds use adw_get_localedir(), relative to the DLL (adw-main.c)'
+    'bin\pango-1.0-0.dll'     = 'sysconfdir and libdir: Pango no longer reads pangorc or modules, and relocates on Windows'
+    'bin\fontconfig-1.dll'    = 'conf.avail in the built-in config: GTK on Windows uses the win32 font map, so fontconfig is never initialised'
+    'bin\libcrypto-3-x64.dll' = 'OPENSSLDIR, ENGINESDIR, MODULESDIR: main.cpp overrides them with OPENSSL_CONF, OPENSSL_ENGINES, OPENSSL_MODULES; ct_log_list.cnf is read only for Certificate Transparency, which glib-networking does not enable'
+    'bin\xml2-16.dll'         = 'the default XML catalog: main.cpp overrides it with XML_CATALOG_FILES'
 }
 $latin1 = [Text.Encoding]::GetEncoding(28591)
 foreach ($f in Get-ChildItem -Path $Stage -Recurse -File) {
@@ -310,10 +330,13 @@ foreach ($f in Get-ChildItem -Path $Stage -Recurse -File) {
         foreach ($n in $needles) {
             $i = $text.IndexOf($n)
             while ($i -ge 0) {
-                # Report the whole printable string around the hit.
-                $s = $i; while ($s -gt 0 -and $text[$s - 1] -ge ' ' -and $text[$s - 1] -le '~') { $s-- }
-                $e = $i; while ($e -lt $text.Length -and $text[$e] -ge ' ' -and $text[$e] -le '~') { $e++ }
-                $hits.Add($text.Substring($s, [Math]::Min($e - $s, 160)))
+                # The path runs from the hit to the end of the printable
+                # string, or to a quote.
+                $e = $i
+                while ($e -lt $text.Length -and $text[$e] -gt ' ' -and $text[$e] -le '~' -and
+                       $text[$e] -ne '"' -and $text[$e] -ne "'") { $e++ }
+                $path = $text.Substring($i, $e - $i)
+                if ($path -notmatch $debugPath) { $hits.Add($path) }
                 $i = $text.IndexOf($n, $e)
             }
         }
@@ -321,9 +344,9 @@ foreach ($f in Get-ChildItem -Path $Stage -Recurse -File) {
     if ($hits.Count -eq 0) { continue }
     $uniq = @($hits | Sort-Object -Unique)
     if ($allowed.Contains($rel)) {
-        Write-Good "allowed: $rel ($($allowed[$rel]))"
+        Write-Good "allowed: $rel ($($uniq.Count) path(s)): $($allowed[$rel])"
     } else {
-        Write-Bad "$rel contains a build path:"
+        Write-Bad "$rel contains a build or prefix path:"
         $uniq | ForEach-Object { Write-Host "      $_" }
         $failed++
     }

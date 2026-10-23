@@ -139,6 +139,20 @@ namespace
         if (g_file_test(gom_modules, G_FILE_TEST_IS_DIR))
             g_setenv("GOM_MODULES_DIR", gom_modules, FALSE);
 
+        /* OpenSSL and libxml2 read files from the absolute prefix they were
+         * built for, which on another machine anyone may create (C:\ lets
+         * users make directories), and an openssl.cnf there could load an
+         * engine DLL. Point them into the install root instead, where none
+         * of these files exist. */
+        auto openssl_conf = String::adopt_string(g_build_filename(root, "etc", "ssl", "openssl.cnf", nullptr));
+        auto openssl_modules = String::adopt_string(g_build_filename(root, "lib", "ossl-modules", nullptr));
+        auto openssl_engines = String::adopt_string(g_build_filename(root, "lib", "engines-3", nullptr));
+        auto xml_catalog = String::adopt_string(g_build_filename(root, "etc", "xml", "catalog", nullptr));
+        g_setenv("OPENSSL_CONF", openssl_conf, FALSE);
+        g_setenv("OPENSSL_MODULES", openssl_modules, FALSE);
+        g_setenv("OPENSSL_ENGINES", openssl_engines, FALSE);
+        g_setenv("XML_CATALOG_FILES", xml_catalog, FALSE);
+
         /* bindtextdomain() takes the path in the system codepage. */
         auto locale_dir = String::adopt_string(g_build_filename(root, "share", "locale", nullptr));
         auto locale_dir_cp = String::adopt_string(g_win32_locale_filename_from_utf8(locale_dir));
