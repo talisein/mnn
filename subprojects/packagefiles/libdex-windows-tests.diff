@@ -1,0 +1,23 @@
+diff --git a/testsuite/meson.build b/testsuite/meson.build
+index bf84fe5..eef9ea6 100644
+--- a/testsuite/meson.build
++++ b/testsuite/meson.build
+@@ -29,7 +29,8 @@ if have_gdbus_codegen
+ endif
+ 
+ testsuite = {
+-  'test-aio': {},
++  # fcntl(), O_CLOEXEC and pipe(): Unix only, as is dex_fd_watch().
++  'test-aio': {'disable': host_machine.system() == 'windows'},
+   'test-async-result': {},
+   'test-channel': {},
+   'test-dbus': {'extra-sources': dbus_foo, 'disable': not have_gdbus_codegen, 'is_parallel': false},
+@@ -49,7 +50,7 @@ testsuite = {
+   'test-thread': {},
+   'test-thread-pool': {},
+   'test-version': {},
+-  'test-watch': {},
++  'test-watch': {'disable': host_machine.system() == 'windows'},
+ }
+ 
+ testsuite_deps = [

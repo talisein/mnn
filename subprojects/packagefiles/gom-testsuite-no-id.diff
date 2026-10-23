@@ -1,0 +1,37 @@
+diff --git a/testsuite/meson.build b/testsuite/meson.build
+index 6f1257b..e6882fc 100644
+--- a/testsuite/meson.build
++++ b/testsuite/meson.build
+@@ -52,15 +52,6 @@ lib_testsuite = [
+   'test-gom-sync',
+ ]
+ 
+-pgsql_test_user = run_command(find_program('id'), '-un', check: true).stdout().strip()
+-pgsql_test_dbname = get_option('pgsql-tests-dbname')
+-pgsql_test_tablespace = get_option('pgsql-tests-tablespace')
+-pgsql_test_uri = get_option('pgsql-tests-uri')
+-
+-if pgsql_test_uri == ''
+-  pgsql_test_uri = 'postgresql:///@0@?user=@1@'.format(pgsql_test_dbname, pgsql_test_user)
+-endif
+-
+ foreach test: lib_testsuite
+   test_exe = executable(
+     test,
+@@ -150,6 +141,16 @@ if get_option('sqlite-backend').enabled()
+ endif
+ 
+ if pgsql_dep.found()
++  # id is not on Windows; only the pgsql test needs the login name.
++  pgsql_test_user = run_command(find_program('id'), '-un', check: true).stdout().strip()
++  pgsql_test_dbname = get_option('pgsql-tests-dbname')
++  pgsql_test_tablespace = get_option('pgsql-tests-tablespace')
++  pgsql_test_uri = get_option('pgsql-tests-uri')
++
++  if pgsql_test_uri == ''
++    pgsql_test_uri = 'postgresql:///@0@?user=@1@'.format(pgsql_test_dbname, pgsql_test_user)
++  endif
++
+   test_gom_pgsql = executable('test-gom-pgsql',
+                               ['test-gom-pgsql.c'],
+                               c_args: lib_testsuite_c_args,

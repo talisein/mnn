@@ -67,17 +67,13 @@ libdex_options = {'introspection': 'enabled',
                   'vapi': false,
                   'pygobject': false,
                   'examples': false}
-if host_machine.system() == 'windows'
-  # Its test-aio uses fcntl() and O_CLOEXEC.
-  libdex_options += {'tests': false}
-endif
 libdex = dependency('libdex-1', version: '>= 1.2',
                     default_options: libdex_options)
 
 gom_subp = subproject('gom',
                       default_options: {'introspection': 'enabled',
                                         'default_library': 'shared',
-                                        'tests': false,
+                                        'tests': true,
                                         'vapi': false,
                                         'pygobject': false,
                                         'docs': false,
