@@ -216,14 +216,16 @@ foreach ($s in @('org.gnome.desktop.background.gschema.xml', 'org.gnome.desktop.
 }
 
 # Icons. hicolor is the fallback theme that holds mnn's own icon. Of
-# Adwaita, only the symbolic icons: GTK 4 and libadwaita use symbolic icons
-# for their own UI, and the full theme is mostly cursors, which Windows
-# draws itself.
+# Adwaita, the symbolic icons, which GTK 4 and libadwaita use for their own
+# UI, and the cursors. GDK MAPS ONLY THE CLASSIC CURSOR NAMES TO WIN32
+# CURSORS (gdkcursor-win32.c); any other name, such as libshumate's grab and
+# grabbing over the map, comes from icons\<theme>\cursors or is blank.
 $iconsSrc = Join-Path $GtkPrefix 'share\icons'
 $iconsDst = Join-Path $Stage 'share\icons'
 Copy-Into (Join-Path $iconsSrc 'hicolor\index.theme') (Join-Path $iconsDst 'hicolor')
 Copy-Into (Join-Path $iconsSrc 'Adwaita\index.theme') (Join-Path $iconsDst 'Adwaita')
 Copy-Into (Join-Path $iconsSrc 'Adwaita\symbolic') (Join-Path $iconsDst 'Adwaita')
+Copy-Into (Join-Path $iconsSrc 'Adwaita\cursors') (Join-Path $iconsDst 'Adwaita')
 
 # Translations of the libraries whose strings reach the UI or its error
 # messages, only for the languages mnn has (po\LINGUAS) and their regional

@@ -93,9 +93,12 @@ exe-relative `share\`, and the schemas and icons seem to vanish.
 - **`share\glib-2.0\schemas`:** GLib's, GTK's and gsettings-desktop-schemas'
   schemas plus mnn's, compiled. The two wallpaper schemas are left out:
   their defaults are `file://` URIs into the build prefix.
-- **`share\icons`:** hicolor, for mnn's own icon, and only the
-  *symbolic* part of Adwaita, which is what GTK 4 and libadwaita draw with.
-  The full theme is mostly cursors, which Windows draws itself.
+- **`share\icons`:** hicolor, for mnn's own icon, and two parts of Adwaita:
+  - the *symbolic* icons, which is what GTK 4 and libadwaita draw with;
+  - the *cursors*. GDK maps only the classic cursor names (`default`,
+    `pointer`, `move`, the resize cursors…) to built-in Win32 cursors. Any
+    other name comes from the theme, or the cursor is blank, and libshumate
+    uses `grab` and `grabbing` over the map.
 - **`share\locale`:** mnn's catalogs, plus GTK's, libadwaita's, GLib's,
   gdk-pixbuf's, glib-networking's, libsoup's and libshumate's, but **only
   for the languages in `po/LINGUAS`** and their regional variants. GLib's

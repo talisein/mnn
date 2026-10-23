@@ -31,7 +31,10 @@
            Scope="perUser"
            Language="1033">
 
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Monday Night Net is already installed." />
+    <!-- Same-version upgrades too, so a rebuilt .msi replaces the installed
+         one instead of installing beside it. -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="A newer version of Monday Night Net is already installed." />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
     <Icon Id="AppIcon.ico" SourceFile="$(var.IconFile)" />
