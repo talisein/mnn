@@ -38,3 +38,21 @@ index f220b15..f726714 100644
  
    future = dex_scheduler_spawn_coroutine (NULL,
                                            test_coroutine_suspend_gauntlet_func,
+diff --git a/testsuite/test-limiter.c b/testsuite/test-limiter.c
+index ccf8a75..2110ce1 100644
+--- a/testsuite/test-limiter.c
++++ b/testsuite/test-limiter.c
+@@ -595,7 +595,13 @@ test_limiter_discard_run_on_pool_fiber (gpointer user_data)
+   GError * error = NULL;
+   DexFuture *block;
+   DexFuture *future;
++#ifdef G_OS_WIN32
++  /* Timeouts and sleeps there wake on the ~15.6msec scheduler tick, so a
++   * 10msec item can finish before the first 1msec poll sees it start. */
++  PoolDiscardState state = { .sleep_usec = 100000 };
++#else
+   PoolDiscardState state = { .sleep_usec = 10000 };
++#endif
+ 
+   future = dex_limiter_run_on_pool (limiter,
+                                     pool,
