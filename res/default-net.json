@@ -43,7 +43,7 @@
         { "callsign": "WU6K", "name": "Jim", "assistant_emergency_coordinator": true},
         { "callsign": "KO6KCF", "name": "Lawrence"},
         { "callsign": "AI6KG", "name": "Chris"},
-        { "callsign": "KO6KNT", "name": "Guillaume"},
+        { "callsign": "KO6KNT", "name": "Guillaume", "assistant_emergency_coordinator": true},
         { "callsign": "KI6KVZ", "name": "Andrew"},
 
         { "callsign": "KI6LCP", "name": "Jim"},
