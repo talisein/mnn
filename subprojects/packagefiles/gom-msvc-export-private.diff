@@ -1,0 +1,81 @@
+--- a/lib/meson.build
++++ b/lib/meson.build
+@@ -161,6 +161,22 @@
+                            pic: true,
+                         install: false)
+ 
++# The sqlite backend module calls gom's private _gom_* functions, which a
++# DLL built by MSVC or clang-cl does not export (only the public API is
++# marked _GOM_EXTERN). So export everything gom_* and _gom_* in the static
++# library through a .def file, as CMake's WINDOWS_EXPORT_ALL_SYMBOLS does.
++libgom_kwargs = {}
++if cc.get_argument_syntax() == 'msvc'
++  libgom_def = custom_target('gom-def',
++                    input: libgom_static,
++                   output: 'gom-@0@.def'.format(api_version),
++                  command: [import('python').find_installation(),
++                            files('msvc-gen-def.py'),
++                            find_program('dumpbin'),
++                            '@INPUT@', '@OUTPUT@'])
++  libgom_kwargs += {'vs_module_defs': libgom_def}
++endif
++
+ libgom = library('gom-@0@'.format(api_version),
+            dependencies: libgom_deps,
+                  c_args: libgom_c_args,
+@@ -168,6 +184,7 @@
+                 install: true,
+                 version: '@0@.0.0'.format(api_version),
+         darwin_versions: '@0@.0'.format(api_version),
++                 kwargs: libgom_kwargs,
+ )
+ 
+ if get_option('sqlite-backend').enabled()
+--- /dev/null
++++ b/lib/msvc-gen-def.py
+@@ -0,0 +1,45 @@
++#!/usr/bin/env python3
++# Writes a .def file exporting every gom_* and _gom_* symbol defined in a
++# static library, read with dumpbin. The sqlite backend is a separate
++# module that calls gom's private _gom_* functions. That works where symbols
++# are visible by default, but a DLL built by MSVC or clang-cl exports only
++# what it is told to, and only the public API is marked _GOM_EXTERN.
++#
++# usage: msvc-gen-def.py <dumpbin> <input.lib> <output.def>
++#
++# No LIBRARY line: the linker names the DLL from its own output path.
++
++import re
++import subprocess
++import sys
++
++dumpbin, lib, out = sys.argv[1:4]
++
++prefixes = ('gom_', '_gom_')
++
++# A defined external symbol, as dumpbin /symbols prints it:
++#   008 00000000 SECT3  notype ()    External     | gom_repository_new
++# "notype ()" is a function and "notype" is data. UNDEF sections are
++# references to other libraries and are skipped.
++sym_re = re.compile(r'^\w+\s+\w+\s+SECT\w+\s+notype(\s\(\))?\s+External\s+\|\s+(\S+)')
++
++listing = subprocess.run([dumpbin, '/nologo', '/symbols', lib],
++                         check=True, capture_output=True, text=True).stdout
++
++functions = set()
++data = set()
++for line in listing.splitlines():
++    m = sym_re.match(line)
++    if not m or not m.group(2).startswith(prefixes):
++        continue
++    (functions if m.group(1) else data).add(m.group(2))
++
++if not functions:
++    sys.exit(f'msvc-gen-def.py: no gom_* functions found in {lib}')
++
++with open(out, 'w', encoding='ascii', newline='\n') as f:
++    f.write('EXPORTS\n')
++    for name in sorted(functions):
++        f.write(f'    {name}\n')
++    for name in sorted(data):
++        f.write(f'    {name} DATA\n')

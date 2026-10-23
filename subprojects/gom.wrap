@@ -5,7 +5,7 @@ url=https://gitlab.gnome.org/GNOME/gom.git
 # commit. Bump deliberately.
 revision=ebc850c2be6534d2472cc61cb0e0476f165f88b2
 depth=1
-diff_files=gom-gir-annotations.diff,gom-leak-fixes.diff,gom-uninit-fix.diff,gom-unsigned-bitfields.diff,gom-clang-cl-exports.diff,gom-subproject-dex-gir.diff
+diff_files=gom-gir-annotations.diff,gom-leak-fixes.diff,gom-uninit-fix.diff,gom-unsigned-bitfields.diff,gom-clang-cl-exports.diff,gom-subproject-dex-gir.diff,gom-msvc-export-private.diff
 
 [provide]
 dependency_names=libgom-2
