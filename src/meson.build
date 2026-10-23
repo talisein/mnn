@@ -32,6 +32,14 @@ libmnn_dep = declare_dependency(link_with: libmnn,
                                 sources: conf)
 
 src = ['main.cpp']
+# A GUI program on Windows, so starting it opens no console window. With
+# MSVC the windows subsystem expects WinMain(); the entry point keeps main().
+exe_link_args = []
+if host_machine.system() == 'windows' and cpp_compiler.get_argument_syntax() == 'msvc'
+  exe_link_args += '/ENTRY:mainCRTStartup'
+endif
 exe = executable('monday-night-net', src, res, windows_res,
                  dependencies: libmnn_dep,
+                 win_subsystem: 'windows',
+                 link_args: exe_link_args,
                  install: true)
