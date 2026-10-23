@@ -20,6 +20,7 @@
 #include <format>
 #include <print>
 #include <iostream>
+#include <memory>
 #include <glib/gi18n.h>
 #include "mnn.hpp"
 #include "mnn_application.hpp"
@@ -27,6 +28,12 @@
 
 #if MNN_HAS_CORE_FOUNDATION
 #include <CoreFoundation/CoreFoundation.h>
+#endif
+
+#ifdef G_OS_WIN32
+#include <windows.h>
+#include <appmodel.h>
+#include <shobjidl.h>
 #endif
 
 using namespace peel;
@@ -119,13 +126,45 @@ namespace
             g_warning("Failed setting locale to user-preferred \"%s\": %s", locale.name().c_str(), e.what());
         }
     }
+
+    #ifdef G_OS_WIN32
+    /* Installed as <root>\bin\monday-night-net.exe. GLib and GTK find their
+     * own data relative to their DLLs; mnn's translations and gom's sqlite
+     * module have no such lookup, so derive them from the root here. */
+    void relocate_win32() noexcept
+    {
+        auto root = String::adopt_string(g_win32_get_package_installation_directory_of_module(nullptr));
+
+        auto gom_modules = String::adopt_string(g_build_filename(root, "lib", "libgom-2", "modules", nullptr));
+        if (g_file_test(gom_modules, G_FILE_TEST_IS_DIR))
+            g_setenv("GOM_MODULES_DIR", gom_modules, FALSE);
+
+        /* bindtextdomain() takes the path in the system codepage. */
+        auto locale_dir = String::adopt_string(g_build_filename(root, "share", "locale", nullptr));
+        auto locale_dir_cp = String::adopt_string(g_win32_locale_filename_from_utf8(locale_dir));
+        bindtextdomain(GETTEXT_PACKAGE, locale_dir_cp ? locale_dir_cp.c_str() : LOCALEDIR);
+
+        /* An MSIX package gets its AUMID from the OS; only an unpackaged
+         * install sets it, to match its Start menu shortcut. */
+        UINT32 len = 0;
+        if (GetCurrentPackageFullName(&len, nullptr) == APPMODEL_ERROR_NO_PACKAGE) {
+            std::unique_ptr<gunichar2, decltype(&g_free)> aumid {
+                g_utf8_to_utf16(APP_ID, -1, nullptr, nullptr, nullptr), &g_free };
+            SetCurrentProcessExplicitAppUserModelID(reinterpret_cast<PCWSTR>(aumid.get()));
+        }
+    }
+    #endif
 } // Anonymous Namespace
 
 int
 main (int argc, char *argv[])
 {
     manage_locale();
+    #ifdef G_OS_WIN32
+    relocate_win32();
+    #else
     bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+    #endif
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
     textdomain(GETTEXT_PACKAGE);
     mnn::init();

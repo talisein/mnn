@@ -45,7 +45,7 @@ settings_schema = configure_file(input: 'radio.ki6kvz.MondayNightNet.gschema.xml
                                  output: '@0@.gschema.xml'.format(app_id),
                                  configuration: resource_conf_data)
 
-install_data(settings_schema, install_dir: schemas_dir)
+install_data(settings_schema, install_dir: schemas_dir, install_tag: 'runtime')
 
 gschemas_compiled = custom_target('gschemas.compiled',
                                   output: 'gschemas.compiled',
@@ -68,7 +68,8 @@ install_data(desktop_file, install_dir: get_option('prefix') / get_option('datad
 # Renamed to app_id so the .Devel build's desktop file finds its icon too.
 install_data('radio.ki6kvz.MondayNightNet.svg',
              install_dir: get_option('prefix') / get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
-             rename: '@0@.svg'.format(app_id))
+             rename: '@0@.svg'.format(app_id),
+             install_tag: 'runtime')
 
 metainfo_file = configure_file(input: 'radio.ki6kvz.MondayNightNet.metainfo.xml.in',
                                output: '@0@.metainfo.xml'.format(app_id),

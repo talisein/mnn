@@ -1,6 +1,7 @@
 # Meson build directories
 /build/
 /build-*/
+!/build-aux/
 
 # flatpak-builder state and output repo
 /.flatpak-builder/
