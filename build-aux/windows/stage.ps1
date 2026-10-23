@@ -185,8 +185,10 @@ while ($queue.Count -gt 0) {
         if (Test-Path (Join-Path $stageBin $dll)) { continue }
         # GTK's prefix and the CRT come before System32: the build box has
         # the VC++ runtime installed system-wide, a clean machine does not.
+        # libshumate, built by meson rather than gvsbuild, installs its DLL
+        # into the prefix's lib\.
         $src = $null
-        foreach ($dir in @($gtkBin, $crtDir)) {
+        foreach ($dir in @($gtkBin, (Join-Path $GtkPrefix 'lib'), $crtDir)) {
             if (Test-Path (Join-Path $dir $dll)) { $src = Join-Path $dir $dll; break }
         }
         if ($src) {
