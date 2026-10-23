@@ -25,6 +25,7 @@
 namespace mnn
 {
 using namespace peel;
+namespace GObject = peel::GObject;
 
 PEEL_CLASS_IMPL (CallsignListViewCell, "MNNCallsignListViewCell", Gtk::Box);
 
@@ -89,7 +90,7 @@ CallsignListViewCell::make_factory() noexcept
 
             callsign_cell->update_css_classes(station);
 
-            auto css_lambda = [callsign_cell] (Object *s, peel::GObject::ParamSpec*) {
+            auto css_lambda = [callsign_cell] (Object *s, GObject::ParamSpec*) {
                 auto station = s->cast<Station>();
                 callsign_cell->update_css_classes(station);
             };

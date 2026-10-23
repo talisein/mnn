@@ -31,6 +31,7 @@ PEEL_CLASS_IMPL(mnn::HttpClient, "MnnHttpClient", peel::GObject::Object)
 namespace mnn
 {
     using namespace peel;
+    namespace GObject = peel::GObject;
 
     /* Sends the message and resolves to the response body, or rejects with a
      * GLib::Error. */
@@ -41,7 +42,7 @@ namespace mnn
         auto promise = Dex::Promise::create();
 
         session->send_and_read_async(msg, G_PRIORITY_DEFAULT, cancel,
-            [promise, session, msg](peel::GObject::Object *, Gio::AsyncResult *result) {
+            [promise, session, msg](GObject::Object *, Gio::AsyncResult *result) {
                 UniquePtr<GLib::Error> err;
                 auto bytes = session->send_and_read_finish(result, &err);
                 if (err) {
@@ -50,7 +51,7 @@ namespace mnn
                     promise->reject(std::move(err));
                     return;
                 }
-                promise->resolve_boxed(peel::GObject::Type::of<GLib::Bytes>(), std::move(bytes).release_ref());
+                promise->resolve_boxed(GObject::Type::of<GLib::Bytes>(), std::move(bytes).release_ref());
             });
 
         return peeler::into_future<GLib::Bytes>(promise);
@@ -72,7 +73,7 @@ namespace mnn
     RefPtr<HttpClient>
     HttpClient::create()
     {
-        auto self = peel::GObject::Object::create<HttpClient>();
+        auto self = GObject::Object::create<HttpClient>();
         auto session = Soup::Session::create();
         auto user_agent = std::format("monday-night-net/{} (+{})", PROJECT_VERSION, REPO_ISSUES_LINK);
         session->set_user_agent(user_agent.c_str());
@@ -83,7 +84,7 @@ namespace mnn
     RefPtr<HttpClient>
     HttpClient::create_for_test(HttpMockFn mock_fn)
     {
-        auto self = peel::GObject::Object::create<HttpClient>();
+        auto self = GObject::Object::create<HttpClient>();
         self->m.transport = std::move(mock_fn);
         return self;
     }

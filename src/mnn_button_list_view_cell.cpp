@@ -24,10 +24,10 @@
 #include <peel/GLib/GLib.h>
 #include <peel/GObject/Binding.h>
 
-using namespace peel;
-
 namespace mnn
 {
+  using namespace peel;
+  namespace GObject = peel::GObject;
 
   PEEL_CLASS_IMPL (ButtonListViewCell, "MNNButtonListViewCell", Gtk::Box);
 
@@ -75,9 +75,9 @@ namespace mnn
       });
 
     struct Bindings {
-      RefPtr<peel::GObject::Binding> bind_ack;
-      RefPtr<peel::GObject::Binding> bind_direct;
-      RefPtr<peel::GObject::Binding> bind_relay;
+      RefPtr<GObject::Binding> bind_ack;
+      RefPtr<GObject::Binding> bind_direct;
+      RefPtr<GObject::Binding> bind_relay;
 
       ~Bindings() {
         if (bind_ack) bind_ack->unbind();
@@ -98,14 +98,14 @@ namespace mnn
                                                 station->prop_is_acknowledged(),
                                                 button_cell->m.acknowledged_button,
                                                 button_cell->m.acknowledged_button->prop_active(),
-                                                peel::GObject::BindingFlags::BIDIRECTIONAL | peel::GObject::BindingFlags::SYNC_CREATE
+                                                GObject::BindingFlags::BIDIRECTIONAL | GObject::BindingFlags::SYNC_CREATE
           );
 
         binds->bind_direct = Object::bind_property(station,
                                                    station->prop_status(),
                                                    button_cell->m.direct_button,
                                                    button_cell->m.direct_button->prop_active(),
-                                                   peel::GObject::BindingFlags::BIDIRECTIONAL | peel::GObject::BindingFlags::SYNC_CREATE,
+                                                   GObject::BindingFlags::BIDIRECTIONAL | GObject::BindingFlags::SYNC_CREATE,
                                                    [] (StationStatus status) -> bool {
                                                      if (status == StationStatus::HEARD_DIRECT) {
                                                        return true;
@@ -113,7 +113,7 @@ namespace mnn
                                                        return false;
                                                      }
                                                    },
-                                                   [] (peel::GObject::Binding* binding, const peel::GObject::Value* from_value, peel::GObject::Value* to_value) -> bool {
+                                                   [] (GObject::Binding* binding, const GObject::Value* from_value, GObject::Value* to_value) -> bool {
                                                      auto station = binding->get_source()->cast<Station>();
                                                      if (!station) return false;
                                                      const bool is_active = from_value->template get<bool>();
@@ -141,7 +141,7 @@ namespace mnn
                                                   station->prop_status(),
                                                   button_cell->m.relay_button,
                                                   button_cell->m.relay_button->prop_active(),
-                                                  peel::GObject::BindingFlags::BIDIRECTIONAL | peel::GObject::BindingFlags::SYNC_CREATE,
+                                                  GObject::BindingFlags::BIDIRECTIONAL | GObject::BindingFlags::SYNC_CREATE,
                                                   [] (StationStatus status) -> bool {
                                                     if (status == StationStatus::HEARD_RELAY) {
                                                       return true;
@@ -149,7 +149,7 @@ namespace mnn
                                                       return false;
                                                     }
                                                   },
-                                                  [] (peel::GObject::Binding* binding, const peel::GObject::Value* from_value, peel::GObject::Value* to_value) -> bool {
+                                                  [] (GObject::Binding* binding, const GObject::Value* from_value, GObject::Value* to_value) -> bool {
                                                     auto station = binding->get_source()->cast<Station>();
                                                     if (!station) return false;
                                                     const bool is_active = from_value->template get<bool>();

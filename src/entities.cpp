@@ -19,10 +19,10 @@
 #include "entities.hpp"
 #include <peel/GObject/Type.h>
 
-using namespace peel;
-
 namespace mnn
 {
+    using namespace peel;
+    namespace GObject = peel::GObject;
     /* gom's default backfill_identity falls back to sqlite's rowid when the
      * insert result has no column named after the single identity field, and
      * writes that INT64 into it -- turning our TEXT callsign key into e.g.
@@ -64,8 +64,8 @@ namespace mnn
     void
     register_entities(const RefPtr<Gom::RegistryBuilder> &builder)
     {
-        builder->add_entity_type(peel::GObject::Type::of<CallsignPosition>());
-        builder->add_entity_type(peel::GObject::Type::of<CallsignMiss>());
+        builder->add_entity_type(GObject::Type::of<CallsignPosition>());
+        builder->add_entity_type(GObject::Type::of<CallsignMiss>());
     }
 
 } // namespace mnn

@@ -43,6 +43,7 @@ using std::chrono::sys_seconds;
 
 namespace
 {
+    namespace GObject = peel::GObject;
     constexpr auto t0 = sys_seconds { std::chrono::seconds { 1'760'000'000 } };
 
     constexpr std::string_view valid_body = R"({
@@ -134,10 +135,10 @@ namespace
     };
 
     RefPtr<Dex::Future>
-    find(Gom::Repository *repo, peel::GObject::Type type, const char *callsign)
+    find(Gom::Repository *repo, GObject::Type type, const char *callsign)
     {
         const char *props[] = { "callsign" };
-        peel::GObject::Value value { peel::GObject::Type::of<const char *>() };
+        GObject::Value value { GObject::Type::of<const char *>() };
         value.set<const char *>(callsign);
         return repo->find_one_with_properties(type, props, { &value, 1 });
     }
@@ -146,14 +147,14 @@ namespace
     find_position(Gom::Repository *repo, const char *callsign)
     {
         return peeler::into_future<peeler::nullable<mnn::CallsignPosition>>(
-            find(repo, peel::GObject::Type::of<mnn::CallsignPosition>(), callsign));
+            find(repo, GObject::Type::of<mnn::CallsignPosition>(), callsign));
     }
 
     peeler::future<peeler::nullable<mnn::CallsignMiss>>
     find_miss(Gom::Repository *repo, const char *callsign)
     {
         return peeler::into_future<peeler::nullable<mnn::CallsignMiss>>(
-            find(repo, peel::GObject::Type::of<mnn::CallsignMiss>(), callsign));
+            find(repo, GObject::Type::of<mnn::CallsignMiss>(), callsign));
     }
 
     peeler::future<bool>
@@ -175,7 +176,7 @@ namespace
     peeler::future<bool>
     insert_position(Gom::Repository *repo, const char *callsign, double lat, double lon, sys_seconds updated)
     {
-        auto row = peel::GObject::Object::create<mnn::CallsignPosition>();
+        auto row = GObject::Object::create<mnn::CallsignPosition>();
         row->set_callsign(callsign);
         row->set_latitude(lat);
         row->set_longitude(lon);

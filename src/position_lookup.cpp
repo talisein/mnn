@@ -41,6 +41,7 @@ PEEL_CLASS_IMPL(mnn::PositionLookup, "MnnPositionLookup", peel::GObject::Object)
 namespace mnn
 {
     using namespace peel;
+    namespace GObject = peel::GObject;
     using std::chrono::sys_seconds;
 
     namespace
@@ -110,11 +111,11 @@ namespace mnn
         }
 
         RefPtr<Dex::Future>
-        find_by_callsign(Gom::Repository *repo, peel::GObject::Type type, const std::string &callsign)
+        find_by_callsign(Gom::Repository *repo, GObject::Type type, const std::string &callsign)
         {
             /* gom builds the query, copying the value, before returning. */
             const char *props[] = { "callsign" };
-            peel::GObject::Value value { peel::GObject::Type::of<const char *>() };
+            GObject::Value value { GObject::Type::of<const char *>() };
             value.set<const char *>(callsign.c_str());
             return repo->find_one_with_properties(type, props, { &value, 1 });
         }
@@ -161,7 +162,7 @@ namespace mnn
     PositionLookup::create(RefPtr<Gom::Repository> repo, RefPtr<HttpClient> http, Clock now,
                            RefPtr<NominatimGeocoder> geocoder)
     {
-        auto self = peel::GObject::Object::create<PositionLookup>();
+        auto self = GObject::Object::create<PositionLookup>();
         self->m.repo     = std::move(repo);
         self->m.geocoder = geocoder ? std::move(geocoder) : NominatimGeocoder::create(http);
         self->m.http     = std::move(http);
@@ -218,7 +219,7 @@ namespace mnn
         auto now = m.now();
 
         auto cached = co_await peeler::into_future<peeler::nullable<CallsignPosition>>(
-            find_by_callsign(m.repo, peel::GObject::Type::of<CallsignPosition>(), callsign));
+            find_by_callsign(m.repo, GObject::Type::of<CallsignPosition>(), callsign));
         if (!cached) {
             g_message("position cache read for %s failed: %s", callsign.c_str(), cached.error()->message);
             co_return std::unexpected(make_gerror(error::database_error, cached.error()->message));
@@ -228,7 +229,7 @@ namespace mnn
             co_return to_position(*row);
 
         auto missed = co_await peeler::into_future<peeler::nullable<CallsignMiss>>(
-            find_by_callsign(m.repo, peel::GObject::Type::of<CallsignMiss>(), callsign));
+            find_by_callsign(m.repo, GObject::Type::of<CallsignMiss>(), callsign));
         if (!missed) {
             g_message("miss cache read for %s failed: %s", callsign.c_str(), missed.error()->message);
             co_return std::unexpected(make_gerror(error::database_error, missed.error()->message));
@@ -334,7 +335,7 @@ namespace mnn
             if (!updated)
                 failure = std::move(updated).error();
         } else {
-            auto fresh = peel::GObject::Object::create<CallsignPosition>();
+            auto fresh = GObject::Object::create<CallsignPosition>();
             fresh->set_callsign(callsign);
             fresh->set_latitude(latitude);
             fresh->set_longitude(longitude);
@@ -371,7 +372,7 @@ namespace mnn
             if (!updated)
                 failure = std::move(updated).error();
         } else {
-            auto fresh = peel::GObject::Object::create<CallsignMiss>();
+            auto fresh = GObject::Object::create<CallsignMiss>();
             fresh->set_callsign(callsign);
             fresh->set_reason(std::to_underlying(reason));
             fresh->set_last_checked(now);

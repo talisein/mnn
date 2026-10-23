@@ -34,6 +34,8 @@
 #include <windows.h>
 #include <appmodel.h>
 #include <shobjidl.h>
+#include <peel/GLib/FileTest.h>
+#include <peel/GLib/functions.h>
 #endif
 
 using namespace peel;
@@ -137,26 +139,26 @@ namespace
     {
         auto root = String::adopt_string(g_win32_get_package_installation_directory_of_module(nullptr));
 
-        auto gom_modules = String::adopt_string(g_build_filename(root, "lib", "libgom-2", "modules", nullptr));
-        if (g_file_test(gom_modules, G_FILE_TEST_IS_DIR))
-            g_setenv("GOM_MODULES_DIR", gom_modules, FALSE);
+        auto gom_modules = GLib::build_filename(root, "lib", "libgom-2", "modules");
+        if (GLib::file_test(gom_modules, GLib::FileTest::IS_DIR))
+            GLib::setenv("GOM_MODULES_DIR", gom_modules, false);
 
         /* OpenSSL and libxml2 read files from the absolute prefix they were
          * built for, which on another machine anyone may create (C:\ lets
          * users make directories), and an openssl.cnf there could load an
          * engine DLL. Point them into the install root instead, where none
          * of these files exist. */
-        auto openssl_conf = String::adopt_string(g_build_filename(root, "etc", "ssl", "openssl.cnf", nullptr));
-        auto openssl_modules = String::adopt_string(g_build_filename(root, "lib", "ossl-modules", nullptr));
-        auto openssl_engines = String::adopt_string(g_build_filename(root, "lib", "engines-3", nullptr));
-        auto xml_catalog = String::adopt_string(g_build_filename(root, "etc", "xml", "catalog", nullptr));
-        g_setenv("OPENSSL_CONF", openssl_conf, FALSE);
-        g_setenv("OPENSSL_MODULES", openssl_modules, FALSE);
-        g_setenv("OPENSSL_ENGINES", openssl_engines, FALSE);
-        g_setenv("XML_CATALOG_FILES", xml_catalog, FALSE);
+        auto openssl_conf = GLib::build_filename(root, "etc", "ssl", "openssl.cnf");
+        auto openssl_modules = GLib::build_filename(root, "lib", "ossl-modules");
+        auto openssl_engines = GLib::build_filename(root, "lib", "engines-3");
+        auto xml_catalog = GLib::build_filename(root, "etc", "xml", "catalog");
+        GLib::setenv("OPENSSL_CONF", openssl_conf, false);
+        GLib::setenv("OPENSSL_MODULES", openssl_modules, false);
+        GLib::setenv("OPENSSL_ENGINES", openssl_engines, false);
+        GLib::setenv("XML_CATALOG_FILES", xml_catalog, false);
 
         /* bindtextdomain() takes the path in the system codepage. */
-        auto locale_dir = String::adopt_string(g_build_filename(root, "share", "locale", nullptr));
+        auto locale_dir = GLib::build_filename(root, "share", "locale");
         auto locale_dir_cp = String::adopt_string(g_win32_locale_filename_from_utf8(locale_dir));
         bindtextdomain(GETTEXT_PACKAGE, locale_dir_cp ? locale_dir_cp.c_str() : LOCALEDIR);
 
