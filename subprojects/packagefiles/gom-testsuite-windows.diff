@@ -1,5 +1,5 @@
 diff --git a/testsuite/meson.build b/testsuite/meson.build
-index 6f1257b..e6882fc 100644
+index 6f1257b..6a57552 100644
 --- a/testsuite/meson.build
 +++ b/testsuite/meson.build
 @@ -52,15 +52,6 @@ lib_testsuite = [
@@ -18,7 +18,24 @@ index 6f1257b..e6882fc 100644
  foreach test: lib_testsuite
    test_exe = executable(
      test,
-@@ -150,6 +141,16 @@ if get_option('sqlite-backend').enabled()
+@@ -90,10 +81,15 @@ if get_option('sqlite-backend').enabled()
+     'test-gom-relations': {},
+     'test-read-only-object': {},
+     'test-gom-sqlite-entity-migrator': {},
+-    'test-gom-sqlite-stress': {},
++    # Reaps its lock-holder child with waitpid().
++    'test-gom-sqlite-stress': {'unix-only': true},
+   }
+ 
+   foreach test, params: lib_sqlite_testsuite
++    if params.get('unix-only', false) and host_machine.system() == 'windows'
++      continue
++    endif
++
+     test_exe = executable(test, ['@0@.c'.format(test)],
+                    c_args: lib_testsuite_c_args,
+              dependencies: [libgom_static_dep, sqlite3mc_dep],
+@@ -150,6 +146,16 @@ if get_option('sqlite-backend').enabled()
  endif
  
  if pgsql_dep.found()
