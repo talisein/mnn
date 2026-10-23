@@ -1,8 +1,29 @@
 diff --git a/testsuite/meson.build b/testsuite/meson.build
-index 6f1257b..6a57552 100644
+index 6f1257b..3003c38 100644
 --- a/testsuite/meson.build
 +++ b/testsuite/meson.build
-@@ -52,15 +52,6 @@ lib_testsuite = [
+@@ -22,8 +22,19 @@ lib_testsuite_c_args = [
+   '-UG_DISABLE_CAST_CHECKS',
+ ]
+ 
++# The sqlite module links libgom's DLL. On Windows nothing interposes a
++# test's own static copy over it, as --export-dynamic does on ELF, so the
++# process would hold two gom copies and register every type twice. The DLL
++# exports gom's private functions there (gom-def in lib/meson.build), so
++# link the tests against it instead.
++if cc.get_argument_syntax() == 'msvc'
++  libgom_test_dep = libgom_dep
++else
++  libgom_test_dep = libgom_static_dep
++endif
++
+ lib_testsuite_deps = [
+-  libgom_static_dep,
++  libgom_test_dep,
+ ]
+ 
+ if get_option('sqlite-backend').enabled()
+@@ -52,15 +63,6 @@ lib_testsuite = [
    'test-gom-sync',
  ]
  
@@ -18,7 +39,7 @@ index 6f1257b..6a57552 100644
  foreach test: lib_testsuite
    test_exe = executable(
      test,
-@@ -90,10 +81,15 @@ if get_option('sqlite-backend').enabled()
+@@ -90,13 +92,18 @@ if get_option('sqlite-backend').enabled()
      'test-gom-relations': {},
      'test-read-only-object': {},
      'test-gom-sqlite-entity-migrator': {},
@@ -34,8 +55,37 @@ index 6f1257b..6a57552 100644
 +
      test_exe = executable(test, ['@0@.c'.format(test)],
                     c_args: lib_testsuite_c_args,
-              dependencies: [libgom_static_dep, sqlite3mc_dep],
-@@ -150,6 +146,16 @@ if get_option('sqlite-backend').enabled()
+-             dependencies: [libgom_static_dep, sqlite3mc_dep],
++             dependencies: [libgom_test_dep, sqlite3mc_dep],
+       include_directories: [include_directories('..'), include_directories('.')],
+     )
+     if params.get('performance', false)
+@@ -119,13 +126,13 @@ if get_option('sqlite-backend').enabled()
+ 
+   executable('test-manuals', ['test-manuals.c'],
+     c_args: lib_testsuite_c_args,
+-    dependencies: [libgom_static_dep, sqlite3mc_dep],
++    dependencies: [libgom_test_dep, sqlite3mc_dep],
+     include_directories: [include_directories('..'), include_directories('.')],
+   )
+ 
+   executable('describe-sqlite', ['describe-sqlite.c'],
+     c_args: lib_testsuite_c_args,
+-    dependencies: [libgom_static_dep, sqlite3mc_dep],
++    dependencies: [libgom_test_dep, sqlite3mc_dep],
+     include_directories: [include_directories('..'), include_directories('.')],
+   )
+ 
+@@ -137,7 +144,7 @@ if get_option('sqlite-backend').enabled()
+         '-DSTRESS_WORKER_COUNT=8',
+         '-DSTRESS_ITERATIONS=50',
+       ],
+-      dependencies: [libgom_static_dep, sqlite3mc_dep],
++      dependencies: [libgom_test_dep, sqlite3mc_dep],
+       include_directories: [include_directories('..'), include_directories('.')],
+     )
+ 
+@@ -150,10 +157,20 @@ if get_option('sqlite-backend').enabled()
  endif
  
  if pgsql_dep.found()
@@ -52,3 +102,8 @@ index 6f1257b..6a57552 100644
    test_gom_pgsql = executable('test-gom-pgsql',
                                ['test-gom-pgsql.c'],
                                c_args: lib_testsuite_c_args,
+-                              dependencies: [libgom_static_dep, pgsql_dep],
++                              dependencies: [libgom_test_dep, pgsql_dep],
+                               include_directories: [include_directories('..'), include_directories('.')],
+   )
+   test('test-gom-pgsql',
