@@ -26,7 +26,7 @@
 
 constexpr char LOCALEDIR[] = @locale_dir@;
 constexpr char REPO_ISSUES_LINK[] = "https://github.com/talisein/mnn/issues";
-constexpr char PACKAGE_VERSION[] = "@project_version@";
+constexpr char PROJECT_VERSION[] = "@project_version@";
 constexpr char APP_ID[] = "@app_id@";
 constexpr char SCHEMA_PATH[] = "@schema_path@";
 constexpr char SCHEMA_ID[] = "@schema_id@";

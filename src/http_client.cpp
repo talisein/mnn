@@ -71,7 +71,7 @@ namespace mnn
     {
         auto self = peel::GObject::Object::create<HttpClient>();
         auto session = Soup::Session::create();
-        auto user_agent = std::format("monday-night-net/{} (+{})", PACKAGE_VERSION, REPO_ISSUES_LINK);
+        auto user_agent = std::format("monday-night-net/{} (+{})", PROJECT_VERSION, REPO_ISSUES_LINK);
         session->set_user_agent(user_agent.c_str());
         self->m.transport = std::move(session);
         return self;

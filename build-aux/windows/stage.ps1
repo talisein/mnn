@@ -30,7 +30,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$BuildDir = (Join-Path $PSScriptRoot '..\..\build-msvc'),
+    [string]$BuildDir,
     [string]$Stage,
     [string]$GtkPrefix = $env:GTKPREFIX
 )
@@ -60,6 +60,8 @@ function Copy-Into {
     Copy-Item -Path $Source -Destination $DestDir -Recurse -Force
 }
 
+# Windows PowerShell 5.1 leaves $PSScriptRoot empty in param defaults.
+if (-not $BuildDir) { $BuildDir = Join-Path $PSScriptRoot '..\..\build-msvc' }
 $BuildDir = (Resolve-Path $BuildDir).Path
 if (-not $Stage) { $Stage = Join-Path $BuildDir 'stage' }
 if (-not $GtkPrefix -or -not (Test-Path (Join-Path $GtkPrefix 'bin'))) {

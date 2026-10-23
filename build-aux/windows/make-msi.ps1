@@ -26,7 +26,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$BuildDir = (Join-Path $PSScriptRoot '..\..\build-msvc')
+    [string]$BuildDir
 )
 
 Set-StrictMode -Version 2.0
@@ -42,6 +42,8 @@ function Invoke-Native {
     finally { $ErrorActionPreference = $prevEap }
 }
 
+# Windows PowerShell 5.1 leaves $PSScriptRoot empty in param defaults.
+if (-not $BuildDir) { $BuildDir = Join-Path $PSScriptRoot '..\..\build-msvc' }
 $BuildDir = (Resolve-Path $BuildDir).Path
 $stage = Join-Path $BuildDir 'stage'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
