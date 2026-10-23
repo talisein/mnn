@@ -226,11 +226,19 @@ Copy-Into (Join-Path $iconsSrc 'Adwaita\index.theme') (Join-Path $iconsDst 'Adwa
 Copy-Into (Join-Path $iconsSrc 'Adwaita\symbolic') (Join-Path $iconsDst 'Adwaita')
 
 # Translations of the libraries whose strings reach the UI or its error
-# messages. mnn's own come from meson install.
+# messages, only for the languages mnn has (po\LINGUAS) and their regional
+# variants. GLIB TRANSLATES NO LIBRARY STRINGS IN A LANGUAGE THE APP LACKS
+# (g_dgettext, unless the locale is en_* or C), so a GTK catalog for any
+# other language is never read. mnn's own come from meson install.
+$repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$linguas = @(Get-Content (Join-Path $repo 'po\LINGUAS') | ForEach-Object { $_.Trim() } |
+             Where-Object { $_ -and -not $_.StartsWith('#') })
 $domains = @('gtk40', 'libadwaita', 'glib20', 'gdk-pixbuf', 'glib-networking', 'libsoup-3.0', 'shumate1')
 $localeSrc = Join-Path $GtkPrefix 'share\locale'
 $nMo = 0
 foreach ($lang in Get-ChildItem -Path $localeSrc -Directory) {
+    $wanted = @($linguas | Where-Object { $lang.Name -eq $_ -or $lang.Name.StartsWith("${_}_") -or $lang.Name.StartsWith("${_}@") })
+    if ($wanted.Count -eq 0) { continue }
     foreach ($d in $domains) {
         $mo = Join-Path $lang.FullName "LC_MESSAGES\$d.mo"
         if (Test-Path $mo) {
@@ -239,7 +247,7 @@ foreach ($lang in Get-ChildItem -Path $localeSrc -Directory) {
         }
     }
 }
-Write-Good "$nMo .mo files"
+Write-Good "$nMo library .mo files for $($linguas -join ', ')"
 
 # ---------------------------------------------------------------- caches
 Write-Step 'Caches'
@@ -362,7 +370,15 @@ foreach ($pe in Get-StagedPe) {
         }
     }
 }
-# 3. The CRT must be app-local even though System32 has it on this box.
+# 3. mnn's own catalogs. meson skips them silently when msgfmt is missing,
+#    and then GLib stops translating GTK too (see Data above).
+foreach ($l in $linguas) {
+    if (-not (Test-Path (Join-Path $Stage "share\locale\$l\LC_MESSAGES\MNN.mo"))) {
+        Write-Bad "no share\locale\$l\LC_MESSAGES\MNN.mo; was msgfmt found when $BuildDir was configured?"
+        $failed++
+    }
+}
+# 4. The CRT must be app-local even though System32 has it on this box.
 foreach ($n in @('vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll')) {
     if (-not (Test-Path (Join-Path $stageBin $n))) { Write-Bad "no bin\$n"; $failed++ }
 }
