@@ -91,7 +91,9 @@ namespace
 
     std::locale get_nonmac_locale() noexcept
     {
-        auto cstr_locale = std::setlocale(LC_ALL, "");
+        /* Unqualified: GNU libintl.h, as on Windows, defines setlocale to
+         * libintl_setlocale so that gettext sees the change. */
+        auto cstr_locale = setlocale(LC_ALL, "");
         if (!cstr_locale) {
             g_warning("Unable to std::setlocale() to the user-preferred locale");
             return std::locale::classic();
