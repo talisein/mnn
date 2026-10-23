@@ -180,6 +180,23 @@ sets the same one on itself, so they group in the taskbar. **Under MSIX the
 OS assigns the AUMID** (`<PackageFamilyName>!<AppId>`). `main.cpp` sets its
 own only when `GetCurrentPackageFullName` says the process is unpackaged.
 
+### Known limitation: TLS trust on a fresh Windows
+
+glib-networking's OpenSSL backend copies the Windows ROOT and CA stores once
+at startup (`populate_store()` in `tls/openssl/gtlsdatabase-openssl.c`).
+Windows keeps only a few roots locally (12 in a fresh Sandbox) and downloads
+the rest on demand, but only when something verifies a chain through the
+Windows API. Chrome and Firefox use their own stores, so they don't trigger
+that download either. On a machine that has never fetched the roots for
+callook.info (Let's Encrypt) or tile.openstreetmap.org, map tiles and
+callsign lookups fail with "Unacceptable TLS certificate". mnn logs that as
+`GET https://… failed: …`. `SSL_CERT_FILE` does not help, because the Windows
+branch never reads OpenSSL's default paths.
+
+Two fixes were considered and not taken yet:
+- a `GTlsDatabase` that verifies through `CertGetCertificateChain`;
+- a bundled CA file with `g_tls_file_database_new()`.
+
 ### Where MSI and MSIX differ
 
 - **Uninstall.** The MSI removes the install folder and shortcut but leaves

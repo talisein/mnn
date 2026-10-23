@@ -22,6 +22,7 @@
 #include <string>
 #include <peel/Dex/Promise.h>
 #include <peel/GLib/Error.h>
+#include <peel/GLib/Uri.h>
 #include <peel/GObject/Type.h>
 #include <peel/Gio/AsyncResult.h>
 
@@ -40,10 +41,12 @@ namespace mnn
         auto promise = Dex::Promise::create();
 
         session->send_and_read_async(msg, G_PRIORITY_DEFAULT, cancel,
-            [promise, session](peel::GObject::Object *, Gio::AsyncResult *result) {
+            [promise, session, msg](peel::GObject::Object *, Gio::AsyncResult *result) {
                 UniquePtr<GLib::Error> err;
                 auto bytes = session->send_and_read_finish(result, &err);
                 if (err) {
+                    if (!err->matches(G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                        g_message("%s %s failed: %s", msg->get_method(), msg->get_uri()->to_string().c_str(), err->message);
                     promise->reject(std::move(err));
                     return;
                 }
