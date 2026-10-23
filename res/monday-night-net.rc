@@ -1,0 +1,5 @@
+// The window, taskbar and Explorer icon on Windows. GDK gives every window
+// the first icon in the .exe, falling back to GTK's own DLL icon if there is
+// none. radio.ki6kvz.MondayNightNet.ico is rendered from the .svg next to it
+// (16, 24, 32, 48, 64 and 256 px); regenerate it if the .svg changes.
+1 ICON "radio.ki6kvz.MondayNightNet.ico"

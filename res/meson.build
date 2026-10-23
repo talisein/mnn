@@ -30,6 +30,14 @@ res = gnome.compile_resources('mnn_resources',
                               export : false,
                               c_name : 'mnn_resources')
 
+# Windows takes the app icon from an icon resource in the .exe; see the .rc.
+windows_res = []
+if host_machine.system() == 'windows'
+  windows_res = import('windows').compile_resources('monday-night-net.rc',
+    depend_files : 'radio.ki6kvz.MondayNightNet.ico',
+    include_directories : include_directories('.'))
+endif
+
 # GSettings
 
 schemas_dir = get_option('prefix') / get_option('datadir') / 'glib-2.0' / 'schemas'

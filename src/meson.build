@@ -32,6 +32,6 @@ libmnn_dep = declare_dependency(link_with: libmnn,
                                 sources: conf)
 
 src = ['main.cpp']
-exe = executable('monday-night-net', src, res,
+exe = executable('monday-night-net', src, res, windows_res,
                  dependencies: libmnn_dep,
                  install: true)
