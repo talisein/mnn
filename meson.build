@@ -1,6 +1,6 @@
 project('monday-night-net', ['c', 'cpp'],
         license: 'GPLv3+',
-        version: '0.0.1',
+        version: '0.1.0',
         meson_version: '>=1.4.0',
         # MSVC and clang-cl have no c++26 option; c++latest is their newest.
         default_options: ['cpp_std=c++26,c++latest',
