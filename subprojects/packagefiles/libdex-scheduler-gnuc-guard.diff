@@ -1,0 +1,15 @@
+diff --git a/src/dex-scheduler.h b/src/dex-scheduler.h
+index 8d41d07..0b1c4f5 100644
+--- a/src/dex-scheduler.h
++++ b/src/dex-scheduler.h
+@@ -106,7 +106,9 @@ DexFuture    *dex_scheduler_spawnv             (DexScheduler     *scheduler,
+                                                 guint             n_params,
+                                                 ...) G_GNUC_WARN_UNUSED_RESULT;
+ 
+-#if !defined(DEX_DISABLE_STATIC_NAME_MACROS)
++/* Statement expressions are a GNU extension; dex-future.h and dex-promise.h
++ * guard theirs the same way. */
++#if G_GNUC_CHECK_VERSION(3,0) && !defined(DEX_DISABLE_STATIC_NAME_MACROS)
+ # define _DEX_FIBER_NEW_(counter, scheduler, stack_size, func, func_data, func_data_destroy) \
+   ({ DexFuture *G_PASTE(__f, counter) = dex_scheduler_spawn ((scheduler), \
+                                                              (stack_size), \

@@ -92,7 +92,8 @@ namespace
     }
     #endif
 
-    void terminate_handler() noexcept
+    // Not terminate_handler: MSVC's <eh.h> has a global typedef by that name.
+    void on_terminate() noexcept
     {
         auto eptr = std::current_exception();
         if (eptr) {
@@ -138,7 +139,7 @@ namespace mnn
         init_handlers();
         std::signal(SIGSEGV, sigsegv_handler);
         #endif
-        std::set_terminate(terminate_handler);
+        std::set_terminate(on_terminate);
 
         Adw::init();
         Dex::init();
