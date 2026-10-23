@@ -65,16 +65,20 @@ if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "project version '$version' is
 
 Write-Step "wix build $version"
 $msi = Join-Path $BuildDir "monday-night-net-$version-x64.msi"
+$out = @(Invoke-Native { & $wix build -arch x64 -pdbtype none `
+            -d "Version=$version" -d "StageDir=$stage" `
+            -d "IconFile=$(Join-Path $repo 'res\radio.ki6kvz.MondayNightNet.ico')" `
+            -o $msi (Join-Path $PSScriptRoot 'mnn.wxs') })
+$out | ForEach-Object { Write-Host "    $_" }
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path $msi)) { throw 'wix build failed' }
+
+Write-Step 'ICE validation'
 # ICE38, ICE64 and ICE91 assume a per-machine package: they want every
 # component under the user profile keyed by an HKCU value and every
 # directory there listed for removal. Harvested files are keyed by
 # themselves, and a per-user package only ever installs for one user.
-$out = @(Invoke-Native { & $wix build -arch x64 -pdbtype none `
-            -d "Version=$version" -d "StageDir=$stage" `
-            -d "IconFile=$(Join-Path $repo 'res\radio.ki6kvz.MondayNightNet.ico')" `
-            -sice ICE38 -sice ICE64 -sice ICE91 `
-            -o $msi (Join-Path $PSScriptRoot 'mnn.wxs') })
+$out = @(Invoke-Native { & $wix msi validate -sice ICE38 -sice ICE64 -sice ICE91 $msi })
 $out | ForEach-Object { Write-Host "    $_" }
-if ($LASTEXITCODE -ne 0 -or -not (Test-Path $msi)) { throw 'wix build failed' }
+if ($LASTEXITCODE -ne 0) { throw 'ICE validation failed' }
 
 Write-Step ("{0} ({1:N1} MB)" -f $msi, ((Get-Item $msi).Length / 1MB))
