@@ -94,6 +94,11 @@ subproject_gir_path = (build_machine.system() == 'windows' ? ';' : ':').join([
   meson.global_build_root() / 'subprojects' / 'gom' / 'lib',
   meson.global_build_root() / 'subprojects' / 'libdex' / 'src',
 ])
+# On Windows peel-gen looks only in GI_GIR_PATH, not XDG_DATA_DIRS, so the
+# installed GIRs (Gtk, Adw, Shumate, Soup) have to be on it too.
+if build_machine.system() == 'windows'
+  subproject_gir_path += ';' + dependency('gobject-introspection-1.0').get_variable(pkgconfig: 'girdir')
+endif
 
 peel_gtk = custom_target('peel-codegen',
   command: [
