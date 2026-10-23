@@ -40,14 +40,14 @@ namespace mnn
         auto promise = Dex::Promise::create();
 
         session->send_and_read_async(msg, G_PRIORITY_DEFAULT, cancel,
-            [promise, session](GObject::Object *, Gio::AsyncResult *result) {
+            [promise, session](peel::GObject::Object *, Gio::AsyncResult *result) {
                 UniquePtr<GLib::Error> err;
                 auto bytes = session->send_and_read_finish(result, &err);
                 if (err) {
                     promise->reject(std::move(err));
                     return;
                 }
-                promise->resolve_boxed(GObject::Type::of<GLib::Bytes>(), std::move(bytes).release_ref());
+                promise->resolve_boxed(peel::GObject::Type::of<GLib::Bytes>(), std::move(bytes).release_ref());
             });
 
         return peeler::into_future<GLib::Bytes>(promise);
@@ -69,7 +69,7 @@ namespace mnn
     RefPtr<HttpClient>
     HttpClient::create()
     {
-        auto self = GObject::Object::create<HttpClient>();
+        auto self = peel::GObject::Object::create<HttpClient>();
         auto session = Soup::Session::create();
         auto user_agent = std::format("monday-night-net/{} (+{})", PACKAGE_VERSION, REPO_ISSUES_LINK);
         session->set_user_agent(user_agent.c_str());
@@ -80,7 +80,7 @@ namespace mnn
     RefPtr<HttpClient>
     HttpClient::create_for_test(HttpMockFn mock_fn)
     {
-        auto self = GObject::Object::create<HttpClient>();
+        auto self = peel::GObject::Object::create<HttpClient>();
         self->m.transport = std::move(mock_fn);
         return self;
     }

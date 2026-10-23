@@ -97,7 +97,7 @@ namespace mnn
     RefPtr<NominatimGeocoder>
     NominatimGeocoder::create(RefPtr<HttpClient> http, std::chrono::milliseconds cooldown)
     {
-        auto self = GObject::Object::create<NominatimGeocoder>();
+        auto self = peel::GObject::Object::create<NominatimGeocoder>();
         self->m.http = std::move(http);
         self->m.cooldown.emplace(cooldown);
         return self;

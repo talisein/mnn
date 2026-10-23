@@ -53,7 +53,7 @@
  *   loader->load_async(cancel, [p, loader](...) {
  *       auto image = loader->load_finish(ar, &err);
  *       if (err) p->reject(std::move(err));
- *       else     p->resolve_object(RefPtr<GObject::Object>(std::move(image)));
+ *       else     p->resolve_object(RefPtr<peel::GObject::Object>(std::move(image)));
  *   });
  *   return peeler::into_future<Gly::Image>(p);      // future<Gly::Image>
  *
@@ -159,7 +159,7 @@ public:
 namespace detail {
 
 /* Detect peel boxed types (GLib::Bytes, …): they have a Value::Traits
- * specialisation with OwnedType = RefPtr<T>.  GObject::Object subclasses are
+ * specialisation with OwnedType = RefPtr<T>.  peel::GObject::Object subclasses are
  * excluded so the GObject branch always wins for them. */
 template<typename T, typename = void>
 struct is_boxed : std::false_type {};

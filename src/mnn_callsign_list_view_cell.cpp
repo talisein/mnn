@@ -89,7 +89,7 @@ CallsignListViewCell::make_factory() noexcept
 
             callsign_cell->update_css_classes(station);
 
-            auto css_lambda = [callsign_cell] (Object *s, GObject::ParamSpec*) {
+            auto css_lambda = [callsign_cell] (Object *s, peel::GObject::ParamSpec*) {
                 auto station = s->cast<Station>();
                 callsign_cell->update_css_classes(station);
             };
@@ -115,24 +115,20 @@ CallsignListViewCell::update_css_classes(Station* station) noexcept
     const auto is_unack = !station->is_acknowledged() && station->get_status() != mnn::StationStatus::PENDING;
     const auto is_aec   = station->is_assistant_emergency_coordinator();
 
+    // Named arrays, not (const char*[]){...}: compound literals are a GCC
+    // extension in C++ that MSVC rejects (C4576).
     if (is_unack && is_aec) {
-        set_css_classes((const char*[]){
-                "unacknowledged",
-                "is-aec",
-                nullptr
-            });
+        const char *classes[] = { "unacknowledged", "is-aec", nullptr };
+        set_css_classes(classes);
     } else if (is_unack && !is_aec) {
-        set_css_classes((const char*[]){
-                "unacknowledged",
-                nullptr
-            });
+        const char *classes[] = { "unacknowledged", nullptr };
+        set_css_classes(classes);
     } else if (!is_unack && is_aec) {
-        set_css_classes((const char*[]){
-                "is-aec",
-                nullptr
-            });
+        const char *classes[] = { "is-aec", nullptr };
+        set_css_classes(classes);
     } else if (!is_unack && !is_aec) {
-        set_css_classes((const char*[]){nullptr});
+        const char *classes[] = { nullptr };
+        set_css_classes(classes);
     }
 }
 

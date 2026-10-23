@@ -171,7 +171,7 @@ namespace mnn
   StationMapView::StationWatch
   StationMapView::watch_station(RefPtr<Station> station) noexcept
   {
-    auto changed = [this] { return [this] (Object* o, GObject::ParamSpec*) { on_station_changed(o->cast<Station>()); }; };
+    auto changed = [this] { return [this] (Object* o, peel::GObject::ParamSpec*) { on_station_changed(o->cast<Station>()); }; };
     StationWatch watch {
       .station        = station,
       .status_conn    = station->connect_notify(Station::prop_status(), changed()),

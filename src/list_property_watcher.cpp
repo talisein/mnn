@@ -70,7 +70,7 @@ namespace mnn
   ListPropertyWatcher::watch_item(RefPtr<Object> item) noexcept
   {
     SignalConnection conn = item->connect_notify(Property<void>{m.prop_name.c_str()},
-                                                 [this] (Object*, GObject::ParamSpec*) { sig_changed.emit(this); });
+                                                 [this] (Object*, peel::GObject::ParamSpec*) { sig_changed.emit(this); });
     return ItemWatch{std::move(item), std::move(conn)};
   }
 

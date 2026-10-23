@@ -64,8 +64,8 @@ namespace mnn
     void
     register_entities(const RefPtr<Gom::RegistryBuilder> &builder)
     {
-        builder->add_entity_type(GObject::Type::of<CallsignPosition>());
-        builder->add_entity_type(GObject::Type::of<CallsignMiss>());
+        builder->add_entity_type(peel::GObject::Type::of<CallsignPosition>());
+        builder->add_entity_type(peel::GObject::Type::of<CallsignMiss>());
     }
 
 } // namespace mnn

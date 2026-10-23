@@ -46,7 +46,7 @@ int main() {
 
         auto check_notify = [&p](auto prop, auto value) {
             bool notified = false;
-            SignalConnection connection = p->connect_notify(prop, [&notified, &prop, &value](Object *c, GObject::ParamSpec *pspec) {
+            SignalConnection connection = p->connect_notify(prop, [&notified, &prop, &value](Object *c, peel::GObject::ParamSpec *pspec) {
                 notified = true;
                 if constexpr (std::is_same_v<const char*, std::decay_t<decltype(value)>>) {
                     expect(eq(std::string_view(value), std::string_view(c->cast<mnn::Station>()->get_property(prop))));
@@ -68,10 +68,10 @@ int main() {
         auto check_notify_sideeffect = [&p](auto main_prop, auto value, auto side_prop, auto side_value)
         {
             bool main_notified = false, side_notified = false;
-            SignalConnection main_connection = p->connect_notify(main_prop, [&main_notified](Object *c, GObject::ParamSpec *pspec) {
+            SignalConnection main_connection = p->connect_notify(main_prop, [&main_notified](Object *c, peel::GObject::ParamSpec *pspec) {
                 main_notified = true;
             });
-            SignalConnection side_connection = p->connect_notify(side_prop, [&side_notified, &side_prop, &side_value](Object *c, GObject::ParamSpec *pspec) {
+            SignalConnection side_connection = p->connect_notify(side_prop, [&side_notified, &side_prop, &side_value](Object *c, peel::GObject::ParamSpec *pspec) {
                 side_notified = true;
                 if constexpr (std::is_same_v<const char*, std::decay_t<decltype(side_value)>>) {
                     expect(eq(std::string_view(side_value), std::string_view(c->cast<mnn::Station>()->get_property(side_prop))));
@@ -100,13 +100,13 @@ int main() {
         expect(eq(SHUMATE_MIN_LATITUDE, p->get_property(mnn::Station::prop_latitude())));
         expect(eq(SHUMATE_MIN_LONGITUDE, p->get_property(mnn::Station::prop_longitude())));
         bool notified = false, notified_lat = false, notified_long = false;
-        SignalConnection connection = p->connect_notify(mnn::Station::prop_has_location(), [&notified](Object *c, GObject::ParamSpec *pspec) {
+        SignalConnection connection = p->connect_notify(mnn::Station::prop_has_location(), [&notified](Object *c, peel::GObject::ParamSpec *pspec) {
             notified = true;
         });
-        SignalConnection connection_lat = p->connect_notify(mnn::Station::prop_latitude(), [&notified_lat](Object *c, GObject::ParamSpec *pspec) {
+        SignalConnection connection_lat = p->connect_notify(mnn::Station::prop_latitude(), [&notified_lat](Object *c, peel::GObject::ParamSpec *pspec) {
             notified_lat = true;
         });
-        SignalConnection connection_long = p->connect_notify(mnn::Station::prop_longitude(), [&notified_long](Object *c, GObject::ParamSpec *pspec) {
+        SignalConnection connection_long = p->connect_notify(mnn::Station::prop_longitude(), [&notified_long](Object *c, peel::GObject::ParamSpec *pspec) {
             notified_long = true;
         });
         p->set_location(122.2, 80.8);

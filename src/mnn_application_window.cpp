@@ -205,7 +205,7 @@ namespace mnn
       StationColumnView* column = station_col;
       m.columns_flowbox->append(station_col);
       SignalConnection conn = column->connect_notify(StationColumnView::prop_total(),
-                                                     [this] (Object*, GObject::ParamSpec*) { update_grand_total(); });
+                                                     [this] (Object*, peel::GObject::ParamSpec*) { update_grand_total(); });
       m.columns.push_back({column, std::move(conn)});
       /*
       auto filter = Gtk::CustomFilter::create([begin = col["begin"].get<std::string>(), end = col["end"].get<std::string>()]
@@ -302,7 +302,7 @@ namespace mnn
     dialog->set_initial_name(initial.c_str());
 
     RefPtr<ApplicationWindow> self { this };
-    dialog->save(this, nullptr, [self, dialog] (GObject::Object*, Gio::AsyncResult* res) {
+    dialog->save(this, nullptr, [self, dialog] (peel::GObject::Object*, Gio::AsyncResult* res) {
       UniquePtr<GLib::Error> error;
       RefPtr<Gio::File> file = dialog->save_finish(res, &error);
       if (!file) {
@@ -327,7 +327,7 @@ namespace mnn
   {
     auto dialog = make_net_file_dialog(_("Open Net"));
     RefPtr<ApplicationWindow> self { this };
-    dialog->open(this, nullptr, [self, dialog] (GObject::Object*, Gio::AsyncResult* res) {
+    dialog->open(this, nullptr, [self, dialog] (peel::GObject::Object*, Gio::AsyncResult* res) {
       UniquePtr<GLib::Error> error;
       RefPtr<Gio::File> file = dialog->open_finish(res, &error);
       if (!file) {
@@ -498,10 +498,10 @@ namespace mnn
     auto window = Object::create<ApplicationWindow>(prop_application(), app);
     Object::bind_property(app, Application::prop_position_lookup(),
                           window->m.map_view, StationMapView::prop_position_lookup(),
-                          GObject::BindingFlags::SYNC_CREATE);
+                          peel::GObject::BindingFlags::SYNC_CREATE);
     Object::bind_property(window->m.callsign_entry_buffer, Gtk::EntryBuffer::prop_text(),
                           window->m.map_view, StationMapView::prop_home_callsign(),
-                          GObject::BindingFlags::SYNC_CREATE);
+                          peel::GObject::BindingFlags::SYNC_CREATE);
     return window;
   }
 

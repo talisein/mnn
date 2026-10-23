@@ -39,7 +39,8 @@ namespace mnn
         RefPtr<Gio::SimpleAction> action = Gio::SimpleAction::create ("quit", nullptr);
         action->connect_activate (this, &Application::action_quit);
         cast<Gio::ActionMap> ()->add_action (action);
-        set_accels_for_action ("app.quit", (const char *[]) { "<Ctrl>Q", nullptr });
+        const char *quit_accels[] = { "<Ctrl>Q", nullptr };
+        set_accels_for_action ("app.quit", quit_accels);
     }
 
     void
