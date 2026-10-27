@@ -17,6 +17,7 @@
     "stations": [
         { "callsign": "WB6AAJ", "name": "Kelly"},
         { "callsign": "KJ6AMM", "name": "Paul", "assistant_emergency_coordinator": true},
+        { "callsign": "KI6AWX", "name": "Todd"},
         { "callsign": "WB7BDI", "name": "Kevin"},
         { "callsign": "KE6BJQ", "name": "Tim"},
         { "callsign": "NA6D", "name": "Nigel", "assistant_emergency_coordinator": true},
