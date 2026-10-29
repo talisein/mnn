@@ -47,10 +47,6 @@ namespace mnn
   void
   ApplicationWindow::vfunc_dispose()
   {
-    // Popovers need to be unparented
-    m.date_entry_popover->unparent();
-    m.date_entry_popover = nullptr;
-
     m.columns.clear();
     m.store = nullptr;
 
@@ -127,9 +123,13 @@ namespace mnn
   }
 
   void
-  ApplicationWindow::on_date_entry_icon_pressed(Gtk::Entry*, Gtk::Entry::IconPosition pos)
+  ApplicationWindow::on_date_entry_icon_pressed(Gtk::Entry* entry, Gtk::Entry::IconPosition pos)
   {
     if (Gtk::Entry::IconPosition::SECONDARY == pos) {
+      // The entry fills the popover's parent box, so entry coords == box coords
+      Gdk::Rectangle area;
+      entry->get_icon_area(pos, &area);
+      m.date_entry_popover->set_pointing_to(&area);
       m.date_entry_popover->popup();
     }
   }
