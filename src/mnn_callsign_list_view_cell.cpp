@@ -116,21 +116,15 @@ CallsignListViewCell::update_css_classes(Station* station) noexcept
     const auto is_unack = !station->is_acknowledged() && station->get_status() != mnn::StationStatus::PENDING;
     const auto is_aec   = station->is_assistant_emergency_coordinator();
 
-    // Named arrays, not (const char*[]){...}: compound literals are a GCC
-    // extension in C++ that MSVC rejects (C4576).
-    if (is_unack && is_aec) {
-        const char *classes[] = { "unacknowledged", "is-aec", nullptr };
-        set_css_classes(classes);
-    } else if (is_unack && !is_aec) {
-        const char *classes[] = { "unacknowledged", nullptr };
-        set_css_classes(classes);
-    } else if (!is_unack && is_aec) {
-        const char *classes[] = { "is-aec", nullptr };
-        set_css_classes(classes);
-    } else if (!is_unack && !is_aec) {
-        const char *classes[] = { nullptr };
-        set_css_classes(classes);
-    }
+    if (is_unack)
+        add_css_class("unacknowledged");
+    else
+        remove_css_class("unacknowledged");
+
+    if (is_aec)
+        add_css_class("is-aec");
+    else
+        remove_css_class("is-aec");
 }
 
 } // namespace mnn
