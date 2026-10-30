@@ -10,12 +10,14 @@
   enabledManagers: ['custom.regex'],
   dependencyDashboard: true,
 
-  // Verified by extraction, not just validation: renovate --platform=local
-  // --dry-run=full on a clone rolled back to runtime 50 and protobuf-c v1.5.1
-  // returned exactly 3 branches (runtime 50->51 in both files, libshumate
-  // 1.6.3->1.7.0 with 1.7.0's commit, protobuf-c v1.5.2 with its commit), and
-  // 4 with the digest rule below disabled. protobuf-c lookups need the
-  // github.com token from the bot's hostRules.
+  // Verified by extraction, not just validation, when this file was added
+  // (main then on runtime 51, libshumate 1.6.3, protobuf-c v1.5.2):
+  // renovate --platform=local --dry-run=full on a clone rolled back to
+  // runtime 50 and protobuf-c v1.5.1 returned exactly 3 branches (runtime
+  // 50->51 in both files, libshumate 1.6.3->1.7.0 with 1.7.0's commit,
+  // protobuf-c v1.5.2 with its commit), and 4 with the digest rule below
+  // disabled. protobuf-c lookups need the github.com token from the bot's
+  // hostRules.
 
   customManagers: [
     // THE GNOME RUNTIME, in two places that must move together: the
@@ -70,8 +72,9 @@
     },
     {
       // The commit only ever moves with the tag. A digest-only update on its
-      // own is wrong, and measured: a dry run offered libshumate tag 1.6.3
-      // with 1.7.0's commit, which flatpak-builder would reject.
+      // own is wrong, and measured: with libshumate on 1.6.3, a dry run
+      // offered tag 1.6.3 with 1.7.0's commit, which flatpak-builder would
+      // reject.
       description: 'No digest-only updates for tag+commit manifest sources.',
       matchDepNames: ['GNOME/libshumate', 'protobuf-c/protobuf-c'],
       matchUpdateTypes: ['digest'],
