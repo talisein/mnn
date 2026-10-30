@@ -44,6 +44,11 @@ namespace mnn
             peel::SignalConnection conn;
         };
 
+        struct CityTotal {
+            std::string name;
+            peel::Gtk::SpinButton* spin; // owned by city_totals_flowbox
+        };
+
         struct Members {
             peel::RefPtr<peel::Gio::Settings> settings;
             peel::Gtk::Entry* date_entry;
@@ -56,8 +61,11 @@ namespace mnn
             StationMapView* map_view;
             peel::Adw::ToastOverlay* toast_overlay;
             peel::Gtk::Label* grand_total_label;
+            peel::Gtk::Frame* city_totals_section;
+            peel::Gtk::FlowBox* city_totals_flowbox;
             peel::RefPtr<peel::Gio::ListStore> store;
             std::vector<ColumnWatch> columns;
+            std::vector<CityTotal> city_totals;
             nlohmann::json column_defs; // the "columns" the net was built from
         } m;
 
@@ -71,6 +79,9 @@ namespace mnn
         void open_net();
         void load_net(peel::Gio::File* file);
         void update_grand_total() noexcept;
+        /* Replaces the city total spin buttons with one per name in names,
+         * prefilled from counts ({name: count}) where present. */
+        void build_city_totals(const nlohmann::json& names, const nlohmann::json& counts);
         void show_add_station_dialog();
         /* Why callsign can't be added, or empty if it can. callsign is normalized. */
         std::string check_new_callsign(std::string_view raw) const;

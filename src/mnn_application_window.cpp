@@ -48,6 +48,7 @@ namespace mnn
   ApplicationWindow::vfunc_dispose()
   {
     m.columns.clear();
+    m.city_totals.clear();
     m.store = nullptr;
 
     dispose_template(Type::of<ApplicationWindow> ());
@@ -97,7 +98,8 @@ namespace mnn
     PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.map_view, "map-view");
     PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.toast_overlay, "toast-overlay");
     PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.grand_total_label, "grand-total-label");
-    PEEL_WIDGET_TEMPLATE_BIND_CALLBACK (ApplicationWindow, on_calendar_day_selected);
+    PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.city_totals_section, "city-totals-section");
+    PEEL_WIDGET_TEMPLATE_BIND_CHILD (ApplicationWindow, m.city_totals_flowbox, "city-totals-flowbox");    PEEL_WIDGET_TEMPLATE_BIND_CALLBACK (ApplicationWindow, on_calendar_day_selected);
     PEEL_WIDGET_TEMPLATE_BIND_CALLBACK (ApplicationWindow, on_date_entry_icon_pressed);
   }
 
@@ -156,7 +158,8 @@ namespace mnn
       m.toast_overlay->add_toast(toast);
       return;
     }
-    build_net(j["columns"], j.value("stations", nlohmann::json::array()));
+    if (build_net(j["columns"], j.value("stations", nlohmann::json::array())))
+      build_city_totals(j.value("totals", nlohmann::json::array()), nlohmann::json::object());
   }
 
   bool
@@ -255,6 +258,12 @@ namespace mnn
       RefPtr<Object> item = m.store->get_object(i);
       stations.push_back(item->cast<Station>()->to_json());
     }
+    auto totals = nlohmann::json::array();
+    auto total_counts = nlohmann::json::object();
+    for (const auto& city : m.city_totals) {
+      totals.push_back(city.name);
+      total_counts[city.name] = city.spin->get_value_as_int();
+    }
     return {
       {"version", 1},
       {"date", std::string { to_sview(m.date_entry->get_buffer()->get_text()) }},
@@ -263,6 +272,8 @@ namespace mnn
       {"ss_name", std::string { to_sview(m.name_entry_buffer->get_text()) }},
       {"columns", m.column_defs},
       {"map", m.map_view->view_to_json()},
+      {"totals", std::move(totals)},
+      {"total_counts", std::move(total_counts)},
       {"stations", std::move(stations)},
     };
   }
@@ -366,6 +377,8 @@ namespace mnn
     }
     if (!build_net(json["columns"], json.value("stations", nlohmann::json::array())))
       return;
+    build_city_totals(json.value("totals", nlohmann::json::array()),
+                      json.value("total_counts", nlohmann::json::object()));
 
     auto text = [&json] (const char* key) {
       auto it = json.find(key);
@@ -385,6 +398,40 @@ namespace mnn
     auto totals = m.columns | std::views::transform([] (const ColumnWatch& c) { return c.column->get_total(); });
     auto sum = std::ranges::fold_left(totals, 0u, std::plus{});
     m.grand_total_label->set_label(std::format("{}", sum).c_str());
+  }
+
+  void
+  ApplicationWindow::build_city_totals(const nlohmann::json& names, const nlohmann::json& counts)
+  {
+    m.city_totals.clear();
+    m.city_totals_flowbox->remove_all();
+
+    if (names.is_array()) {
+      for (const auto& n : names) {
+        if (!n.is_string())
+          continue;
+        auto name = n.get<std::string>();
+        if (name.empty() || std::ranges::contains(m.city_totals, name, &CityTotal::name))
+          continue;
+
+        auto box = Gtk::Box::create(Gtk::Orientation::HORIZONTAL, 6);
+        auto label = Gtk::Label::create(name.c_str());
+        label->set_xalign(0);
+        label->set_hexpand(true);
+        box->append(std::move(label));
+
+        auto spin = Gtk::SpinButton::create_with_range(0, 999, 1);
+        spin->set_numeric(true);
+        if (counts.is_object() && counts.contains(name) && counts[name].is_number_unsigned())
+          spin->set_value(counts[name].get<unsigned>());
+        Gtk::SpinButton* spin_ptr = spin;
+        box->append(std::move(spin));
+
+        m.city_totals_flowbox->append(box);
+        m.city_totals.push_back({std::move(name), spin_ptr});
+      }
+    }
+    m.city_totals_section->set_visible(!m.city_totals.empty());
   }
 
   void

@@ -108,10 +108,41 @@
                     <property name="spacing">6</property>
                     <property name="vexpand">true</property>
                     <child>
-                      <object class="GtkFlowBox" id="columns-flowbox">
-                        <property name="orientation">horizontal</property>
-                        <property name="hexpand">false</property>
-                      </object>
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkFlowBox" id="columns-flowbox">
+                            <property name="orientation">horizontal</property>
+                            <property name="hexpand">false</property>
+                            <property name="vexpand">true</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">6</property>
+                            <style>
+                              <class name="footer-bar"/>
+                            </style>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Total:</property>
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="grand-total-label">
+                                <property name="label">0</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">true</property>
+                                <style>
+                                  <class name="numeric-total"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object><!-- columns and total -->
                     </child>
                     <child>
                       <object class="MNNStationMapView" id="map-view">
@@ -123,26 +154,20 @@
                   </object><!-- columns and map -->
                 </child>
                 <child>
-                  <object class="GtkBox">
-                    <property name="orientation">horizontal</property>
-                    <property name="spacing">6</property>
-                    <style>
-                      <class name="footer-bar"/>
-                    </style>
+                  <object class="GtkFrame" id="city-totals-section">
+                    <property name="label" translatable="yes">Totals</property>
+                    <property name="visible">false</property>
                     <child>
-                      <object class="GtkLabel">
-                        <property name="label" translatable="yes">Total:</property>
-                        <property name="xalign">0</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="grand-total-label">
-                        <property name="label">0</property>
-                        <property name="xalign">0</property>
-                        <property name="hexpand">true</property>
-                        <style>
-                          <class name="numeric-total"/>
-                        </style>
+                      <object class="GtkFlowBox" id="city-totals-flowbox">
+                        <property name="selection-mode">none</property>
+                        <property name="homogeneous">true</property>
+                        <property name="column-spacing">12</property>
+                        <property name="row-spacing">6</property>
+                        <property name="max-children-per-line">10</property>
+                        <property name="margin-start">6</property>
+                        <property name="margin-end">6</property>
+                        <property name="margin-top">6</property>
+                        <property name="margin-bottom">6</property>
                       </object>
                     </child>
                   </object>
