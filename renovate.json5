@@ -1,0 +1,92 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+
+  // ONLY THE FLATPAK BUILD INPUTS: the GNOME runtime, libshumate and
+  // protobuf-c. The wraps in subprojects/ are pinned and bumped by hand (see
+  // their comments), so no built-in manager is enabled.
+  //
+  // THIS FILE ONLY TAKES EFFECT WHILE NO renovate.json EXISTS BESIDE IT. Do
+  // not merge an onboarding PR that adds one.
+  enabledManagers: ['custom.regex'],
+  dependencyDashboard: true,
+
+  // Verified by extraction, not just validation: renovate --platform=local
+  // --dry-run=full on a clone rolled back to runtime 50 and protobuf-c v1.5.1
+  // returned exactly 3 branches (runtime 50->51 in both files, libshumate
+  // 1.6.3->1.7.0 with 1.7.0's commit, protobuf-c v1.5.2 with its commit), and
+  // 4 with the digest rule below disabled. protobuf-c lookups need the
+  // github.com token from the bot's hostRules.
+
+  customManagers: [
+    // THE GNOME RUNTIME, in two places that must move together: the
+    // manifest's runtime-version and the CI image that has that SDK
+    // preinstalled. Both are read against the image's gnome-NN tags, so a
+    // new runtime is only proposed once the CI image for it exists.
+    {
+      customType: 'regex',
+      managerFilePatterns: ['/^radio\\.ki6kvz\\.MondayNightNet\\.yaml$/'],
+      matchStrings: ["\\nruntime-version:\\s*'(?<currentValue>[0-9]+)'"],
+      depNameTemplate: 'gnome-runtime',
+      packageNameTemplate: 'ghcr.io/flathub-infra/flatpak-github-actions',
+      datasourceTemplate: 'docker',
+      extractVersionTemplate: '^gnome-(?<version>[0-9]+)$',
+      versioningTemplate: 'loose',
+    },
+    {
+      customType: 'regex',
+      managerFilePatterns: ['/^\\.forgejo/workflows/flatpak\\.yml$/'],
+      matchStrings: ['SDK_IMAGE:\\s*ghcr\\.io/flathub-infra/flatpak-github-actions:gnome-(?<currentValue>[0-9]+)\\s'],
+      depNameTemplate: 'gnome-runtime',
+      packageNameTemplate: 'ghcr.io/flathub-infra/flatpak-github-actions',
+      datasourceTemplate: 'docker',
+      extractVersionTemplate: '^gnome-(?<version>[0-9]+)$',
+      versioningTemplate: 'loose',
+    },
+
+    // MANIFEST GIT SOURCES PINNED BY TAG AND COMMIT. Renovate rewrites both:
+    // the tag as currentValue and the commit as currentDigest. The commit is
+    // the one the tag points at (`<tag>^{}`), which is what flatpak-builder
+    // checks it against.
+    {
+      customType: 'regex',
+      managerFilePatterns: ['/^radio\\.ki6kvz\\.MondayNightNet\\.yaml$/'],
+      matchStrings: ["url:\\s*https://gitlab\\.gnome\\.org/(?<depName>GNOME/libshumate)\\.git\\s*\\n\\s*tag:\\s*'(?<currentValue>[^']+)'\\s*\\n\\s*commit:\\s*(?<currentDigest>[0-9a-f]{40})"],
+      datasourceTemplate: 'gitlab-tags',
+      registryUrlTemplate: 'https://gitlab.gnome.org',
+    },
+    {
+      customType: 'regex',
+      managerFilePatterns: ['/^radio\\.ki6kvz\\.MondayNightNet\\.yaml$/'],
+      matchStrings: ["url:\\s*https://github\\.com/(?<depName>protobuf-c/protobuf-c)\\.git\\s*\\n\\s*tag:\\s*'(?<currentValue>[^']+)'\\s*\\n\\s*commit:\\s*(?<currentDigest>[0-9a-f]{40})"],
+      datasourceTemplate: 'github-tags',
+    },
+  ],
+
+  packageRules: [
+    {
+      description: 'One PR moves the manifest runtime and the CI SDK image together.',
+      matchDepNames: ['gnome-runtime'],
+      groupName: 'GNOME runtime',
+    },
+    {
+      // The commit only ever moves with the tag. A digest-only update on its
+      // own is wrong, and measured: a dry run offered libshumate tag 1.6.3
+      // with 1.7.0's commit, which flatpak-builder would reject.
+      description: 'No digest-only updates for tag+commit manifest sources.',
+      matchDepNames: ['GNOME/libshumate', 'protobuf-c/protobuf-c'],
+      matchUpdateTypes: ['digest'],
+      enabled: false,
+    },
+    {
+      // libshumate tags its pre-releases 1.7.alpha, 1.7.beta, 1.7.rc.
+      description: 'Only X.Y.Z releases of libshumate.',
+      matchDepNames: ['GNOME/libshumate'],
+      versioning: 'regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$',
+    },
+    {
+      description: 'protobuf-c tags releases vX.Y.Z.',
+      matchDepNames: ['protobuf-c/protobuf-c'],
+      versioning: 'regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$',
+    },
+  ],
+}
