@@ -59,15 +59,19 @@ libboostut = dependency('ut',
 peel_subp = subproject('peel')
 peel = peel_subp.get_variable('peel_dep')
 
-# gom master needs libdex >= 1.2; Fedora ships 1.1, so this falls back to the
-# libdex.wrap subproject. Introspection must be on: gom's gir includes Dex-1,
-# and peel-gen consumes both girs from the build tree.
+# gom master needs libdex >= 1.2, but 1.2.0 (as in the GNOME 51 SDK) lacks
+# libdex c97de27's "coroutine: Fix annotations": its Dex-1.gir passes
+# dex_coroutine_context_resume()'s guint *pc by value, so peel's generated
+# CoroutineContext.h doesn't compile. Ask for 1.3 so every build falls back to
+# the libdex.wrap subproject (1.3.alpha) until a fixed release ships.
+# Introspection must be on: gom's gir includes Dex-1, and peel-gen consumes
+# both girs from the build tree.
 libdex_options = {'introspection': 'enabled',
                   'default_library': 'shared',
                   'vapi': false,
                   'pygobject': false,
                   'examples': false}
-libdex = dependency('libdex-1', version: '>= 1.2',
+libdex = dependency('libdex-1', version: '>= 1.3',
                     default_options: libdex_options)
 
 gom_subp = subproject('gom',
